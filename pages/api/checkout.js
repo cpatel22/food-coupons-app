@@ -1,5 +1,21 @@
 import Stripe from 'stripe';
 
+function getBaseUrl(req) {
+    const origin = req.headers.origin;
+    if (origin && /^https?:\/\//.test(origin)) {
+        return origin;
+    }
+
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+
+    if (!host) {
+        throw new Error('Unable to determine request host for Stripe redirect URLs');
+    }
+
+    return `${protocol}://${host}`;
+}
+
 
 export default async function handler(req, res) {
     if (req.method === 'POST') {
@@ -10,6 +26,7 @@ export default async function handler(req, res) {
             }
             // Initialize Stripe inside handler to ensure env is loaded
             const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+            const baseUrl = getBaseUrl(req);
 
             const { items } = req.body;
 
@@ -33,8 +50,8 @@ export default async function handler(req, res) {
                 // 'card' includes Apple Pay and Google Pay automatically
                 line_items: lineItems,
                 mode: 'payment',
-                success_url: `${req.headers.origin}/success?order_id={CHECKOUT_SESSION_ID}`,
-                cancel_url: `${req.headers.origin}/`,
+                success_url: `${baseUrl}/success?order_id={CHECKOUT_SESSION_ID}`,
+                cancel_url: `${baseUrl}/`,
                 phone_number_collection: { enabled: true },
             });
 

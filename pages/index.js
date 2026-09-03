@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import Head from "next/head";
+import { APP_CONFIG } from "../config";
 import Link from "next/link";
 import MenuItem from "../components/MenuItem";
-import { APP_CONFIG } from "../config";
+import BusinessName from "../components/BusinessName";
 import { loadCart, saveCart } from "../lib/cart-storage";
 
 export default function Home() {
@@ -81,7 +82,7 @@ export default function Home() {
   return (
     <div className="container">
       <Head>
-        <title>Food Menu & Coupons</title>
+        <title>{APP_CONFIG.BUSINESS_NAME}</title>
         <meta name="description" content="Order food and print coupons" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
@@ -90,17 +91,19 @@ export default function Home() {
         <header className="header">
           <div className="header-top">
             <div>
-              <h1>Shyona - Premvati</h1>
+              <BusinessName />
+            </div>
+            <div className="header-actions">
               <Link className="orders-link" href="/orders">
                 My Orders
               </Link>
+              <Link className="cart-toggle" href="/checkout">
+                <span className="cart-icon" aria-hidden="true">
+                  🛒
+                </span>
+                <span className="cart-count">{cartQty}</span>
+              </Link>
             </div>
-            <Link className="cart-toggle" href="/checkout">
-              <span className="cart-icon" aria-hidden="true">
-                🛒
-              </span>
-              <span className="cart-count">{cartQty}</span>
-            </Link>
           </div>
         </header>
 
@@ -158,13 +161,12 @@ export default function Home() {
           align-items: flex-start;
           gap: 16px;
         }
-        h1 {
-          color: #d32f2f;
-          margin-bottom: 5px;
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 12px;
         }
         .orders-link {
-          display: inline-block;
-          margin-top: 12px;
           padding: 10px 16px;
           background: #111;
           color: #fff;

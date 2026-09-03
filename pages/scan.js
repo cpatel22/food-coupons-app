@@ -1,73 +1,81 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import Head from "next/head";
 
 export default function Scan() {
+  const [user, setUser] = useState(null);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
   const [code, setCode] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
 
-  // Focus input automatically for standard scanners acting as keyboard
   useEffect(() => {
-    if (inputRef.current) inputRef.current.focus();
-
-    const interval = setInterval(() => {
-      if (inputRef.current && document.activeElement !== inputRef.current) {
-        // Optional: Force focus if needed for kiosk mode
-      }
-    }, 2000);
-    return () => clearInterval(interval);
+    fetch("/api/scanner/session")
+      .then((res) => res.json())
+      .then((data) => setUser(data.authenticated ? data.user : null));
   }, []);
 
-  const handleScan = async (e) => {
-    if (e) e.preventDefault();
-    if (!code) return;
+  useEffect(() => {
+    if (user && inputRef.current) inputRef.current.focus();
+  }, [user]);
 
+  const login = async (event) => {
+    event.preventDefault();
+    setLoginError("");
+    const res = await fetch("/api/scanner/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) return setLoginError(data.error || "Login failed");
+    setUser(data.user);
+    setPassword("");
+  };
+
+  const logout = async () => {
+    await fetch("/api/scanner/logout", { method: "POST" });
+    setUser(null);
+    setResult(null);
+  };
+
+  const handleScan = async (event) => {
+    event?.preventDefault();
+    if (!code) return;
     setLoading(true);
     setResult(null);
-
     try {
       const res = await fetch("/api/validate-coupon", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code }),
       });
-      const data = await res.json();
-      setResult(data);
-    } catch (err) {
-      console.error(err);
+      setResult(await res.json());
+    } catch {
       setResult({ error: "Scan failed" });
     } finally {
       setLoading(false);
-      setCode(""); // Clear for next scan
+      setCode("");
     }
   };
 
-  const redeemCoupon = async (codeToRedeem) => {
-    if (!confirm("Use this coupon?")) return;
-
-    try {
-      const res = await fetch("/api/validate-coupon", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: codeToRedeem }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setResult((prev) => ({
-          ...prev,
-          status: "VOIDED",
-          item: {
-            ...prev.item,
-            is_used: 1,
-            voided_at: data.voidedAt,
-          },
-          message: "Coupon successfully redeemed just now.",
-        }));
-      }
-    } catch (err) {
-      alert("Failed to redeem");
-    }
+  const redeemCoupon = async () => {
+    if (!result?.item || !confirm("Use this coupon?")) return;
+    const res = await fetch("/api/validate-coupon", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: result.item.code }),
+    });
+    const data = await res.json();
+    if (!res.ok) return setResult({ error: data.error || "Failed to redeem" });
+    setResult((prev) => ({
+      ...prev,
+      status: "VOIDED",
+      item: { ...prev.item, is_used: true, voided_at: data.voidedAt },
+      message: "Coupon successfully redeemed.",
+    }));
   };
 
   return (
@@ -75,120 +83,153 @@ export default function Scan() {
       <Head>
         <title>Scanner</title>
       </Head>
-      <h1>Coupon Scanner</h1>
-
-      <form onSubmit={handleScan} className="scan-form">
-        <input
-          ref={inputRef}
-          type="text"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder="Scan barcode here..."
-          autoComplete="off"
-        />
-        <button type="submit" disabled={loading}>
-          {" "}
-          Check{" "}
-        </button>
-      </form>
-
-      {result && (
-        <div
-          className={`result-card ${result.status === "VALID" ? "valid" : "void"}`}
-        >
-          {result.error ? (
-            <p className="error">{result.error}</p>
-          ) : (
-            <>
-              <h2>{result.status}</h2>
-              <div className="details">
-                <h3>{result.item.menu_item_name}</h3>
-                <p>Qty: {result.item.qty}</p>
-                <p className="code">{result.item.code}</p>
-              </div>
-
-              {result.status === "VALID" && (
-                <button
-                  className="redeem-btn"
-                  onClick={() => redeemCoupon(result.item.code)}
-                >
-                  MARK AS USED
-                </button>
+      {!user ? (
+        <form className="login" onSubmit={login}>
+          <h1>Scanner Login</h1>
+          <label>
+            Username
+            <input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </label>
+          <label>
+            Password
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </label>
+          {loginError ? <p className="error">{loginError}</p> : null}
+          <button>Login</button>
+        </form>
+      ) : (
+        <>
+          <div className="header">
+            <div>
+              <h1>Coupon Scanner</h1>
+              <p>Signed in as {user.name}</p>
+            </div>
+            <button onClick={logout}>Logout</button>
+          </div>
+          <form onSubmit={handleScan} className="scan-form">
+            <input
+              ref={inputRef}
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="Scan barcode here..."
+              autoComplete="off"
+            />
+            <button disabled={loading}>
+              {loading ? "Checking..." : "Check"}
+            </button>
+          </form>
+          {result ? (
+            <div
+              className={`result-card ${result.status === "VALID" ? "valid" : "void"}`}
+            >
+              {result.error ? (
+                <p className="error">{result.error}</p>
+              ) : (
+                <>
+                  <h2>{result.status}</h2>
+                  <h3>{result.item.menu_item_name}</h3>
+                  <p>Qty: {result.item.qty}</p>
+                  <p className="code">{result.item.code}</p>
+                  {result.status === "VALID" ? (
+                    <button className="redeem" onClick={redeemCoupon}>
+                      MARK AS USED
+                    </button>
+                  ) : (
+                    <p>{result.message}</p>
+                  )}
+                </>
               )}
-
-              {result.status === "VOIDED" && (
-                <p className="void-msg">{result.message}</p>
-              )}
-            </>
-          )}
-        </div>
+            </div>
+          ) : null}
+        </>
       )}
-
       <style jsx>{`
         .container {
-          max-width: 480px;
-          margin: 0 auto;
-          padding: 20px;
-          text-align: center;
+          max-width: 520px;
+          margin: auto;
+          padding: 24px;
+        }
+        .login {
+          display: grid;
+          gap: 14px;
+          margin-top: 80px;
+        }
+        .login label {
+          display: grid;
+          gap: 6px;
+          font-weight: 700;
+        }
+        .login input,
+        .scan-form input {
+          padding: 14px;
+          border: 1px solid #d1d5db;
+          border-radius: 8px;
+          font-size: 16px;
+        }
+        .login button,
+        .header button,
+        .scan-form button {
+          border: 0;
+          border-radius: 8px;
+          background: #111827;
+          color: #fff;
+          padding: 12px 16px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .header p {
+          color: #6b7280;
         }
         .scan-form {
           display: flex;
           gap: 10px;
-          margin-bottom: 30px;
+          margin: 24px 0;
         }
-        input {
+        .scan-form input {
           flex: 1;
-          padding: 15px;
-          font-size: 18px;
-          text-align: center;
-        }
-        button {
-          padding: 0 20px;
-          font-size: 16px;
-          cursor: pointer;
         }
         .result-card {
-          border: 2px solid #ccc;
           padding: 20px;
+          border: 2px solid #ccc;
           border-radius: 12px;
-          background: #fff;
+          text-align: center;
         }
-        .result-card.valid {
-          border-color: green;
-          background: #e8f5e9;
+        .valid {
+          background: #ecfdf5;
+          border-color: #16a34a;
         }
-        .result-card.void {
-          border-color: red;
-          background: #ffebee;
+        .void {
+          background: #fef2f2;
+          border-color: #dc2626;
         }
-        h2 {
-          margin: 0 0 10px;
-          text-transform: uppercase;
-        }
-        .details h3 {
-          margin: 0;
-          font-size: 1.5rem;
+        .redeem {
+          background: #15803d;
+          color: #fff;
+          border: 0;
+          border-radius: 8px;
+          padding: 14px 20px;
+          font-weight: 700;
+          cursor: pointer;
+          width: 100%;
         }
         .code {
           font-family: monospace;
-          color: #666;
         }
-        .redeem-btn {
-          background: green;
-          color: white;
-          border: none;
-          padding: 15px 30px;
-          font-size: 18px;
-          font-weight: bold;
-          border-radius: 8px;
-          cursor: pointer;
-          margin-top: 15px;
-          width: 100%;
-        }
-        .void-msg {
-          color: red;
-          font-weight: bold;
-          margin-top: 10px;
+        .error {
+          color: #b42318;
+          font-weight: 700;
         }
       `}</style>
     </div>

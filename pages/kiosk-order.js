@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import BusinessName from "../components/BusinessName";
 
 export default function KioskOrderPage() {
   const router = useRouter();
@@ -72,6 +73,7 @@ export default function KioskOrderPage() {
       </Head>
 
       <div className="card">
+        <BusinessName />
         <h1>Pay at Kiosk</h1>
         <p>
           Show this QR code at the kiosk. The kiosk screen will load your order

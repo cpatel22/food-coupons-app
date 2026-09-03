@@ -19,17 +19,17 @@ export default async function handler(req, res) {
   try {
     if (req.method === "POST") {
       const items = normalizeItems(req.body.items);
+      const customer_name = String(req.body.customer_name || "").trim();
       const customer_email = String(req.body.customer_email || "")
         .trim()
         .toLowerCase();
       const customer_phone = String(req.body.customer_phone || "").trim();
 
-      if (!customer_email || !customer_phone) {
-        return res
-          .status(400)
-          .json({
-            error: "Email and phone number are required for kiosk payment",
-          });
+      if (!customer_name || !customer_email || !customer_phone) {
+        return res.status(400).json({
+          error:
+            "Full name, email, and phone number are required for kiosk payment",
+        });
       }
 
       await MenuItemRepo.assertAvailable(items);
@@ -46,6 +46,7 @@ export default async function handler(req, res) {
         total_qty,
         total_price,
         status: "pending",
+        customer_name,
         customer_email,
         customer_phone,
       });

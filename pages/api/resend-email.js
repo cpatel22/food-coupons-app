@@ -18,12 +18,10 @@ export default async function handler(req, res) {
     const existingCoupons = await CouponRepo.getBySession(order_id);
 
     if (existingCoupons.length === 0) {
-      return res
-        .status(404)
-        .json({
-          error:
-            "No coupons found for this order. Please load the success page first.",
-        });
+      return res.status(404).json({
+        error:
+          "No coupons found for this order. Please load the success page first.",
+      });
     }
 
     const coupons = existingCoupons.map((c) => ({

@@ -102,12 +102,10 @@ export default async function handler(req, res) {
 
     if (kioskOrder) {
       if (kioskOrder.status !== "paid") {
-        return res
-          .status(409)
-          .json({
-            error: "Order has not been marked paid yet",
-            status: kioskOrder.status,
-          });
+        return res.status(409).json({
+          error: "Order has not been marked paid yet",
+          status: kioskOrder.status,
+        });
       }
 
       let existingCoupons = await CouponRepo.getBySession(order_id);

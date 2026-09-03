@@ -16,11 +16,15 @@ create table kiosk_orders (
   total_qty integer not null,
   total_price numeric not null,
   status text not null default 'pending',
+  customer_name text,
   customer_email text,
   customer_phone text,
   paid_at timestamptz,
   created_at timestamptz not null default now()
 );
+
+-- If the table already exists, add the new column with:
+-- alter table kiosk_orders add column if not exists customer_name text;
 
 create table menu_items (
   id text primary key,
@@ -29,16 +33,29 @@ create table menu_items (
   price numeric not null,
   image_url text not null,
   stock_qty integer not null default 0,
+  deactivate_threshold integer not null default 0,
   active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- If the table already exists, add the new column with:
+-- alter table menu_items add column if not exists deactivate_threshold integer not null default 0;
 
 create table order_records (
   order_id text primary key,
   customer_email text not null,
   payment_last4 text not null,
   payment_method text not null,
+  created_at timestamptz not null default now()
+);
+
+create table scanner_users (
+  id text primary key,
+  name text not null,
+  username text not null unique,
+  password_hash text not null,
+  active boolean not null default true,
   created_at timestamptz not null default now()
 );
 

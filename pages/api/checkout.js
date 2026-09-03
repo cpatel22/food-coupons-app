@@ -19,25 +19,53 @@ function getBaseUrl(req) {
   return `${protocol}://${host}`;
 }
 
+function normalizeContact({ customer_name, customer_email, customer_phone }) {
+  const name = String(customer_name || "").trim();
+  const email = String(customer_email || "")
+    .trim()
+    .toLowerCase();
+  const phone = String(customer_phone || "").trim();
+
+  if (!name) {
+    throw new Error("Full name is required");
+  }
+
+  if (!email) {
+    throw new Error("Email is required");
+  }
+
+  if (!phone) {
+    throw new Error("Phone number is required");
+  }
+
+  return { name, email, phone };
+}
+
 export default async function handler(req, res) {
   if (req.method === "POST") {
     try {
       if (!process.env.STRIPE_SECRET_KEY) {
         console.error("STRIPE_SECRET_KEY is not defined");
-        return res
-          .status(500)
-          .json({
-            statusCode: 500,
-            message: "Server Error: Stripe key missing",
-          });
+        return res.status(500).json({
+          statusCode: 500,
+          message: "Server Error: Stripe key missing",
+        });
       }
       // Initialize Stripe inside handler to ensure env is loaded
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
       const baseUrl = getBaseUrl(req);
 
       const { items } = req.body;
+      const contact = normalizeContact(req.body);
 
       await MenuItemRepo.assertAvailable(items);
+
+      // Create a Stripe Customer so Checkout pre-fills name, email, and phone
+      const customer = await stripe.customers.create({
+        name: contact.name,
+        email: contact.email,
+        phone: contact.phone,
+      });
 
       const lineItems = items.map((item) => ({
         price_data: {
@@ -62,10 +90,13 @@ export default async function handler(req, res) {
         payment_method_types: ["card"],
         // To remove Link, you must disable it in the Stripe Dashboard > Settings > Payment Methods
         // 'card' includes Apple Pay and Google Pay automatically
+        customer: customer.id,
         line_items: lineItems,
         mode: "payment",
         success_url: `${baseUrl}/success?order_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${baseUrl}/`,
+        // Phone is mandatory on Checkout; it is pre-filled and locked
+        // because the attached Customer already has a phone number
         phone_number_collection: { enabled: true },
         metadata: {
           cart_items: JSON.stringify(

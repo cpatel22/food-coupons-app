@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import Head from "next/head";
+import { APP_CONFIG } from "../config";
+import BusinessName from "../components/BusinessName";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Cart from "../components/Cart";
@@ -10,10 +12,10 @@ export default function CheckoutPage() {
   const [cart, setCart] = useState([]);
   const [loadingMode, setLoadingMode] = useState(null);
   const [cartReady, setCartReady] = useState(false);
-  const [showKioskForm, setShowKioskForm] = useState(false);
+  const [fullName, setFullName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
-  const [kioskError, setKioskError] = useState("");
+  const [contactError, setContactError] = useState("");
 
   useEffect(() => {
     setCart(loadCart());
@@ -28,8 +30,32 @@ export default function CheckoutPage() {
     saveCart(cart);
   }, [cart, cartReady]);
 
+  const validateContact = () => {
+    if (!fullName.trim()) {
+      setContactError("Full name is required.");
+      return false;
+    }
+
+    if (!customerEmail.trim()) {
+      setContactError("Email is required.");
+      return false;
+    }
+
+    if (!customerPhone.trim()) {
+      setContactError("Phone number is required.");
+      return false;
+    }
+
+    setContactError("");
+    return true;
+  };
+
   const handlePayNow = async () => {
     if (cart.length === 0) {
+      return;
+    }
+
+    if (!validateContact()) {
       return;
     }
 
@@ -39,7 +65,12 @@ export default function CheckoutPage() {
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: cart }),
+        body: JSON.stringify({
+          items: cart,
+          customer_name: fullName,
+          customer_email: customerEmail,
+          customer_phone: customerPhone,
+        }),
       });
 
       const data = await response.json();
@@ -68,19 +99,11 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (!showKioskForm) {
-      setShowKioskForm(true);
-      setKioskError("");
-      return;
-    }
-
-    if (!customerEmail.trim() || !customerPhone.trim()) {
-      setKioskError("Email and phone number are required for kiosk payment.");
+    if (!validateContact()) {
       return;
     }
 
     setLoadingMode("kiosk");
-    setKioskError("");
 
     try {
       const response = await fetch("/api/kiosk-order", {
@@ -88,6 +111,7 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: cart,
+          customer_name: fullName,
           customer_email: customerEmail,
           customer_phone: customerPhone,
         }),
@@ -110,12 +134,13 @@ export default function CheckoutPage() {
   return (
     <div className="page">
       <Head>
-        <title>Checkout</title>
+        <title>{`Checkout | ${APP_CONFIG.BUSINESS_NAME}`}</title>
       </Head>
 
       <div className="container">
         <div className="header">
           <div>
+            <BusinessName />
             <h1>Checkout</h1>
             <p>Review your order and choose how you want to pay.</p>
           </div>
@@ -134,36 +159,45 @@ export default function CheckoutPage() {
           />
         </div>
 
-        {showKioskForm ? (
-          <div className="kiosk-form-card">
-            <h2>Kiosk Contact Details</h2>
-            <p>
-              Enter your email and phone number before generating the kiosk
-              payment QR code.
-            </p>
-            <div className="kiosk-form-grid">
-              <label>
-                Email
-                <input
-                  type="email"
-                  value={customerEmail}
-                  onChange={(e) => setCustomerEmail(e.target.value)}
-                  placeholder="you@example.com"
-                />
-              </label>
-              <label>
-                Phone Number
-                <input
-                  type="tel"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder="Phone number"
-                />
-              </label>
-            </div>
-            {kioskError ? <p className="kiosk-error">{kioskError}</p> : null}
+        <div className="contact-form-card">
+          <h2>Your Details</h2>
+          <p>
+            These details are used for your order and payment confirmation. You
+            will not need to enter them again on the next screen.
+          </p>
+          <div className="contact-form-grid">
+            <label>
+              Full Name
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="John Doe"
+              />
+            </label>
+            <label>
+              Email
+              <input
+                type="email"
+                value={customerEmail}
+                onChange={(e) => setCustomerEmail(e.target.value)}
+                placeholder="you@example.com"
+              />
+            </label>
+            <label>
+              Phone Number
+              <input
+                type="tel"
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                placeholder="+1 555 123 4567"
+              />
+            </label>
           </div>
-        ) : null}
+          {contactError ? (
+            <p className="contact-error">{contactError}</p>
+          ) : null}
+        </div>
 
         <div className="payment-actions">
           <button
@@ -227,36 +261,39 @@ export default function CheckoutPage() {
         .cart-shell {
           max-width: 620px;
         }
-        .kiosk-form-card {
+        .contact-form-card {
           max-width: 620px;
           margin-top: 16px;
           padding: 16px;
           border: 1px solid #dfe4ea;
           background: #fff;
         }
-        .kiosk-form-card h2 {
+        .contact-form-card h2 {
           margin: 0 0 8px;
           font-size: 1.1rem;
           color: #1f2f46;
         }
-        .kiosk-form-grid {
+        .contact-form-card p {
+          max-width: none;
+        }
+        .contact-form-grid {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 12px;
           margin-top: 12px;
         }
-        .kiosk-form-card label {
+        .contact-form-card label {
           display: grid;
           gap: 6px;
           font-weight: 600;
           color: #1f2f46;
         }
-        .kiosk-form-card input {
+        .contact-form-card input {
           padding: 12px;
           border: 1px solid #d0d7e2;
           border-radius: 8px;
         }
-        .kiosk-error {
+        .contact-error {
           margin-top: 10px;
           color: #b42318;
           font-weight: 600;
@@ -302,7 +339,7 @@ export default function CheckoutPage() {
           h1 {
             font-size: 1.8rem;
           }
-          .kiosk-form-grid,
+          .contact-form-grid,
           .payment-actions {
             grid-template-columns: 1fr;
           }

@@ -1,4 +1,5 @@
 import dynamic from "next/dynamic";
+import BusinessName from "./BusinessName";
 
 const Barcode = dynamic(() => import("react-barcode"), {
   ssr: false,
@@ -9,7 +10,7 @@ export default function CouponReceipt({ item, showScissors }) {
   return (
     <div className="coupon-wrapper">
       <div className={`coupon ${item.is_used ? "voided" : ""}`}>
-        <h2>My Restaurant</h2>
+        <BusinessName />
         <p className="coupon-type">Food Coupon</p>
         <hr className="divider" />
         <div className="item">
@@ -154,12 +155,7 @@ export default function CouponReceipt({ item, showScissors }) {
           border-top: 1px dashed #000;
           margin: 8px 0;
         }
-        h2 {
-          text-align: center;
-          margin: 5px 0;
-          font-size: 16px;
-          text-transform: uppercase;
-        }
+        :global(.business-name) { text-align: center; margin: 5px 0; }
         p {
           text-align: center;
           margin: 3px 0;

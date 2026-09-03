@@ -1,4 +1,5 @@
 export const APP_CONFIG = {
+  BUSINESS_NAME: "Shyona - Premvati",
   // Options: "ALL_IN_ONE", "BY_ITEM", "BY_QTY"
   PRINT_MODE: "BY_ITEM",
   NOTIFICATIONS: {

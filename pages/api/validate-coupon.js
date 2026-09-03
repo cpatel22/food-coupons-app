@@ -1,6 +1,12 @@
 import { CouponRepo } from "../../lib/db";
+import { isAdminRequest } from "../../lib/admin-auth";
+import { requireScanner } from "../../lib/scanner-auth";
 
 export default async function handler(req, res) {
+  if (!isAdminRequest(req) && !(await requireScanner(req, res))) {
+    return;
+  }
+
   if (req.method === "POST") {
     const { code } = req.body;
     if (!code) return res.status(400).json({ error: "No code provided" });

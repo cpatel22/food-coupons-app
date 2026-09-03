@@ -1,14 +1,18 @@
-import { requireAdmin, isAdminRequest } from "../../lib/admin-auth";
+import { requireAdmin } from "../../lib/admin-auth";
 import { MenuItemRepo } from "../../lib/menu-items";
 
 export default async function handler(req, res) {
   try {
     if (req.method === "GET") {
-      const items = isAdminRequest(req)
-        ? await MenuItemRepo.listAll()
-        : await MenuItemRepo.listPublic();
+      if (req.query.admin === "true") {
+        if (!requireAdmin(req, res)) {
+          return;
+        }
 
-      return res.status(200).json({ items });
+        return res.status(200).json({ items: await MenuItemRepo.listAll() });
+      }
+
+      return res.status(200).json({ items: await MenuItemRepo.listPublic() });
     }
 
     if (req.method === "POST") {

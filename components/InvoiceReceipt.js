@@ -1,10 +1,12 @@
+import BusinessName from "./BusinessName";
+
 export default function InvoiceReceipt({ items }) {
   const totalQty = items.reduce((a, i) => a + i.qty, 0);
   const totalPrice = items.reduce((a, i) => a + i.qty * i.price, 0);
 
   return (
     <div className="invoice">
-      <h2>My Restaurant</h2>
+      <BusinessName />
       <p className="subtitle">Official Receipt</p>
       <hr />
       <div className="items-list">
@@ -50,12 +52,7 @@ export default function InvoiceReceipt({ items }) {
             page-break-after: avoid; /* Keep invoice together */
           }
         }
-        h2 {
-          text-align: center;
-          margin: 5px 0;
-          font-size: 16px;
-          text-transform: uppercase;
-        }
+        :global(.business-name) { text-align: center; margin: 5px 0; }
         .subtitle {
           text-align: center;
           font-size: 10px;

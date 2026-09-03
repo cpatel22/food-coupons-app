@@ -1,35 +1,66 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Head from "next/head";
-import { menu } from "../data/menu";
+import Link from "next/link";
 import MenuItem from "../components/MenuItem";
-import Cart from "../components/Cart";
-import InvoiceReceipt from "../components/InvoiceReceipt";
-import CouponReceipt from "../components/CouponReceipt";
 import { APP_CONFIG } from "../config";
-
-import { loadStripe } from '@stripe/stripe-js';
-
-// Initialize Stripe only if the key is available
-const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-  : null;
+import { loadCart, saveCart } from "../lib/cart-storage";
 
 export default function Home() {
+  const [menu, setMenu] = useState([]);
   const [cart, setCart] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [menuError, setMenuError] = useState("");
+  const [cartReady, setCartReady] = useState(false);
 
-  // Use global config for print mode instead of local state
-  const printMode = APP_CONFIG.PRINT_MODE;
+  useEffect(() => {
+    setCart(loadCart());
+    setCartReady(true);
+
+    const loadMenu = async () => {
+      try {
+        const res = await fetch("/api/menu-items");
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to load menu");
+        }
+
+        setMenu(data.items);
+        setCart((prev) =>
+          prev.filter((cartItem) =>
+            data.items.some((item) => item.id === cartItem.id),
+          ),
+        );
+      } catch (error) {
+        setMenuError(error.message);
+      }
+    };
+
+    loadMenu();
+  }, []);
+
+  useEffect(() => {
+    if (!cartReady) {
+      return;
+    }
+
+    saveCart(cart);
+  }, [cart, cartReady]);
 
   const updateQty = (item, delta) => {
     setCart((prev) => {
       const existing = prev.find((i) => i.id === item.id);
       if (!existing && delta > 0) {
+        if (item.stock_qty <= 0) {
+          return prev;
+        }
         // Add new item
         return [...prev, { ...item, qty: 1 }];
       }
       if (existing) {
         const newQty = existing.qty + delta;
+        if (delta > 0 && newQty > item.stock_qty) {
+          return prev;
+        }
         if (newQty <= 0) {
           // Remove item
           return prev.filter((i) => i.id !== item.id);
@@ -45,42 +76,7 @@ export default function Home() {
     return cart.find((i) => i.id === id)?.qty || 0;
   };
 
-
-  const handleCheckout = async () => {
-    setLoading(true);
-
-    try {
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: cart }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || data.error || `Server Error: ${response.status}`);
-      }
-
-      // Simplified redirection using the server-provided URL
-      const { url } = data;
-
-      if (url) {
-        window.location.href = url;
-      } else {
-        throw new Error("No Checkout URL returned from server");
-      }
-
-      if (result.error) {
-        alert(result.error.message);
-      }
-    } catch (e) {
-      console.error("Checkout Error:", e);
-      alert(`Checkout failed: ${e.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const cartQty = cart.reduce((sum, item) => sum + item.qty, 0);
 
   return (
     <div className="container">
@@ -92,11 +88,24 @@ export default function Home() {
 
       <div className="screen-only">
         <header className="header">
-          <h1>Delicious Eats</h1>
-          <p>Select your favorite meals below.</p>
+          <div className="header-top">
+            <div>
+              <h1>Shyona - Premvati</h1>
+              <Link className="orders-link" href="/orders">
+                My Orders
+              </Link>
+            </div>
+            <Link className="cart-toggle" href="/checkout">
+              <span className="cart-icon" aria-hidden="true">
+                🛒
+              </span>
+              <span className="cart-count">{cartQty}</span>
+            </Link>
+          </div>
         </header>
 
         <main className="menu-list">
+          {menuError ? <p className="error-banner">{menuError}</p> : null}
           {menu.map((item) => (
             <MenuItem
               key={item.id}
@@ -106,15 +115,15 @@ export default function Home() {
             />
           ))}
         </main>
-
-        <Cart items={cart} onCheckout={handleCheckout} />
       </div>
 
       <style jsx global>{`
         body {
           margin: 0;
           padding: 0;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          font-family:
+            -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+            Arial, sans-serif;
           background: #f4f4f4;
           color: #333;
         }
@@ -135,63 +144,85 @@ export default function Home() {
 
       <style jsx>{`
         .container {
-          max-width: ${APP_CONFIG.MENU_COLUMNS > 1 ? '800px' : '600px'};
+          max-width: ${APP_CONFIG.MENU_COLUMNS > 1 ? "800px" : "600px"};
           margin: 0 auto;
           padding: 20px;
           min-height: 100vh;
         }
         .header {
-          text-align: center;
           margin-bottom: 30px;
+        }
+        .header-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 16px;
         }
         h1 {
           color: #d32f2f;
           margin-bottom: 5px;
         }
+        .orders-link {
+          display: inline-block;
+          margin-top: 12px;
+          padding: 10px 16px;
+          background: #111;
+          color: #fff;
+          border-radius: 999px;
+          text-decoration: none;
+          font-weight: 600;
+        }
+        .cart-toggle {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          text-decoration: none;
+          border: none;
+          border-radius: 999px;
+          background: #111;
+          color: #fff;
+          padding: 10px 14px;
+          cursor: pointer;
+          font-weight: 700;
+        }
+        .cart-icon {
+          font-size: 1.1rem;
+          line-height: 1;
+        }
+        .cart-count {
+          min-width: 20px;
+          height: 20px;
+          border-radius: 999px;
+          background: #fff;
+          color: #111;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.85rem;
+        }
         .menu-list {
           display: grid;
-          grid-template-columns: ${Array(APP_CONFIG.MENU_COLUMNS).fill('1fr').join(' ')};
+          grid-template-columns: ${Array(APP_CONFIG.MENU_COLUMNS)
+            .fill("1fr")
+            .join(" ")};
           gap: 15px;
         }
-        .receipt-section {
-          margin-top: 30px;
-          border-top: 2px solid #ddd;
-          padding-top: 20px;
+        @media (max-width: 640px) {
+          .header-top {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .cart-toggle {
+            align-self: flex-end;
+          }
         }
-
-        /* Mode selection is now handled by APP_CONFIG in config.js */
-        .receipt-controls {
-          text-align: center;
-          background: #e8f5e9;
-          padding: 20px;
+        .error-banner {
+          grid-column: 1 / -1;
+          background: #fdecea;
+          color: #b42318;
+          border: 1px solid #f5c2c7;
+          padding: 12px;
           border-radius: 8px;
-          margin-bottom: 20px;
-        }
-        .print-btn {
-          padding: 12px 24px;
-          background: #0070f3;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          font-size: 1rem;
-          font-weight: bold;
-          cursor: pointer;
-          margin-right: 10px;
-        }
-        .close-btn {
-          padding: 12px 24px;
-          background: #ccc;
-          color: #333;
-          border: none;
-          border-radius: 6px;
-          font-size: 1rem;
-          font-weight: bold;
-          cursor: pointer;
-        }
-        .print-area {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
         }
       `}</style>
     </div>

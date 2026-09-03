@@ -17,11 +17,16 @@ export default function Success() {
   useEffect(() => {
     if (order_id) {
       // Check if this session has been seen before
-      const seenSessions = JSON.parse(localStorage.getItem('seen_receipt_sessions') || '{}');
+      const seenSessions = JSON.parse(
+        localStorage.getItem("seen_receipt_sessions") || "{}",
+      );
       if (!seenSessions[order_id]) {
         setIsFirstVisit(true);
         seenSessions[order_id] = true;
-        localStorage.setItem('seen_receipt_sessions', JSON.stringify(seenSessions));
+        localStorage.setItem(
+          "seen_receipt_sessions",
+          JSON.stringify(seenSessions),
+        );
       }
 
       fetch(`/api/retrieve-session?order_id=${order_id}`)
@@ -52,15 +57,13 @@ export default function Success() {
 
   if (loading) return <div style={{ padding: 20 }}>Loading receipt...</div>;
 
-
-
   const resendEmail = async () => {
     if (!order_id) return;
     setSendingEmail(true);
     try {
-      const res = await fetch('/api/resend-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/resend-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ order_id }),
       });
       const data = await res.json();
@@ -79,7 +82,6 @@ export default function Success() {
         <title>Order Success</title>
       </Head>
 
-
       <div className="screen-only receipt-controls">
         {isFirstVisit && (
           <>
@@ -89,41 +91,48 @@ export default function Success() {
         )}
 
         <div className="button-group">
-          <button className="print-btn" onClick={() => window.print()}>Print Coupons</button>
-          <button className="resend-btn" onClick={resendEmail} disabled={sendingEmail}>
+          <button className="print-btn" onClick={() => window.print()}>
+            Print Coupons
+          </button>
+          <button
+            className="resend-btn"
+            onClick={resendEmail}
+            disabled={sendingEmail}
+          >
             {sendingEmail ? "Sending..." : "Email Coupons"}
           </button>
-          <button className="close-btn" onClick={() => router.push('/')}>New Order</button>
+          <button className="close-btn" onClick={() => router.push("/")}>
+            New Order
+          </button>
         </div>
       </div>
 
       <div className="print-area">
         {printMode === "ALL_IN_ONE" && <InvoiceReceipt items={items} />}
 
-        {printMode === "BY_ITEM" && items.map((item) => (
-          <CouponReceipt
-            key={item.id}
-            item={item}
-            showScissors={true}
-          />
-        ))}
+        {printMode === "BY_ITEM" &&
+          items.map((item) => (
+            <CouponReceipt key={item.id} item={item} showScissors={true} />
+          ))}
 
-        {printMode === "BY_QTY" && items.flatMap((item) =>
-          Array.from({ length: item.qty }).map((_, idx) => (
-            <CouponReceipt
-              key={`${item.id}-${idx}`}
-              item={{ ...item, qty: 1 }}
-              showScissors={true}
-            />
-          ))
-        )}
+        {printMode === "BY_QTY" &&
+          items.flatMap((item) =>
+            Array.from({ length: item.qty }).map((_, idx) => (
+              <CouponReceipt
+                key={`${item.id}-${idx}`}
+                item={{ ...item, qty: 1 }}
+                showScissors={true}
+              />
+            )),
+          )}
       </div>
 
       <style jsx global>{`
         body {
           margin: 0;
           padding: 0;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          font-family:
+            -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
           background: #f4f4f4;
           color: #333;
         }
@@ -132,7 +141,7 @@ export default function Success() {
             display: none !important;
           }
           body {
-             background: white;
+            background: white;
           }
         }
       `}</style>
@@ -148,11 +157,11 @@ export default function Success() {
           padding: 40px;
           border-radius: 12px;
           margin-bottom: 30px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
           border: 1px solid #eee;
         }
-        h1 { 
-          color: #1a1a1a; 
+        h1 {
+          color: #1a1a1a;
           margin-top: 0;
           font-size: 2rem;
         }
@@ -193,7 +202,9 @@ export default function Success() {
           font-size: 1rem;
           font-weight: 600;
           cursor: pointer;
-          transition: transform 0.2s, background 0.2s;
+          transition:
+            transform 0.2s,
+            background 0.2s;
         }
         .print-btn:hover {
           background: #333;
@@ -208,7 +219,9 @@ export default function Success() {
           font-size: 1rem;
           font-weight: 600;
           cursor: pointer;
-          transition: transform 0.2s, background 0.2s;
+          transition:
+            transform 0.2s,
+            background 0.2s;
         }
         .resend-btn:hover {
           background: #005bc1;
@@ -227,16 +240,18 @@ export default function Success() {
           font-size: 1rem;
           font-weight: 600;
           cursor: pointer;
-          transition: transform 0.2s, background 0.2s;
+          transition:
+            transform 0.2s,
+            background 0.2s;
         }
         .close-btn:hover {
           background: #e5e5e5;
           transform: translateY(-1px);
         }
         .print-area {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
         }
       `}</style>
     </div>

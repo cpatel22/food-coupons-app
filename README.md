@@ -12,11 +12,13 @@ This is a mobile-friendly food ordering solution built with **Next.js** and **Bu
 ## Getting Started
 
 1. **Install dependencies**:
+
    ```bash
    bun install
    ```
 
 2. **Run the development server**:
+
    ```bash
    bun dev
    ```

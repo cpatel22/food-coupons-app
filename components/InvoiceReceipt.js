@@ -13,7 +13,9 @@ export default function InvoiceReceipt({ items }) {
             <div className="item-col name">
               {item.name} <span className="qty-x">x{item.qty}</span>
             </div>
-            <div className="item-col price">${(item.price * item.qty).toFixed(2)}</div>
+            <div className="item-col price">
+              ${(item.price * item.qty).toFixed(2)}
+            </div>
           </div>
         ))}
       </div>
@@ -33,7 +35,7 @@ export default function InvoiceReceipt({ items }) {
       <style jsx>{`
         .invoice {
           width: 220px;
-          font-family: 'Courier New', Courier, monospace;
+          font-family: "Courier New", Courier, monospace;
           padding: 10px;
           background: #fff;
           font-size: 12px;

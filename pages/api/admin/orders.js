@@ -1,8 +1,10 @@
-import { requireAdmin } from "../../../lib/admin-auth";
+import { isAdminRequest } from "../../../lib/admin-auth";
+import { scannerFromRequest } from "../../../lib/scanner-auth";
 import { getAdminOrders } from "../../../lib/admin-reports";
 
 export default async function handler(req, res) {
-  if (!requireAdmin(req, res)) return;
+  const kioskUser = await scannerFromRequest(req);
+  if (!(await isAdminRequest(req)) && kioskUser?.type !== "Kiosk") return res.status(401).json({ error: "Unauthorized" });
   if (req.method !== "GET")
     return res.status(405).json({ error: "Method Not Allowed" });
 

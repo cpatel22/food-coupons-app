@@ -55,9 +55,25 @@ create table scanner_users (
   name text not null,
   username text not null unique,
   password_hash text not null,
+  user_type text not null check (user_type in ('Admin', 'Kiosk', 'Premvati')),
   active boolean not null default true,
   created_at timestamptz not null default now()
 );
+
+create table scan_logs (
+  id uuid primary key default gen_random_uuid(),
+  scanner_user_id text not null references scanner_users(id),
+  scanner_user_type text not null,
+  scan_type text not null,
+  scanned_value text not null,
+  result text not null,
+  created_at timestamptz not null default now()
+);
+
+-- If the table already exists, add the user type with:
+-- alter table scanner_users add column if not exists user_type text not null default 'Kiosk';
+-- alter table scanner_users drop constraint if exists scanner_users_user_type_check;
+-- alter table scanner_users add constraint scanner_users_user_type_check check (user_type in ('Admin', 'Kiosk', 'Premvati'));
 
 -- Enable RLS (Row Level Security) if you want to restrict access, 
 -- but for this demo/server-side matching, basic table is fine.

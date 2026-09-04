@@ -1,6 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
 import { KioskOrderRepo } from "../../lib/kiosk-orders";
 import { MenuItemRepo } from "../../lib/menu-items";
+import { isAdminRequest } from "../../lib/admin-auth";
+import { scannerFromRequest } from "../../lib/scanner-auth";
 
 function normalizeItems(items) {
   if (!Array.isArray(items) || items.length === 0) {
@@ -71,6 +73,10 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "PUT") {
+      const scanner = await scannerFromRequest(req);
+      if (!(await isAdminRequest(req)) && scanner?.type !== "Kiosk") {
+        return res.status(401).json({ error: "Kiosk login required" });
+      }
       const { order_id, customer_email, customer_phone } = req.body;
 
       if (!order_id) {

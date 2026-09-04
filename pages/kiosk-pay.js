@@ -19,6 +19,14 @@ export default function KioskPayPage() {
 
     const loadOrder = async () => {
       try {
+        const [adminSession, scannerSession] = await Promise.all([
+          fetch("/api/admin/session").then((res) => res.json()),
+          fetch("/api/scanner/session").then((res) => res.json()),
+        ]);
+        if (!adminSession.authenticated && scannerSession.user?.type !== "Kiosk") {
+          router.replace("/login");
+          return;
+        }
         const res = await fetch(`/api/kiosk-order?order_id=${order_id}`);
         const data = await res.json();
 

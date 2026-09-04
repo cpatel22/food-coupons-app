@@ -10,11 +10,9 @@ export default async function handler(req, res) {
     if (!user)
       return res.status(401).json({ error: "Invalid scanner credentials" });
     setScannerSession(res, user);
-    return res
-      .status(200)
-      .json({
-        user: { id: user.id, name: user.name, username: user.username },
-      });
+    return res.status(200).json({
+      user: { id: user.id, name: user.name, username: user.username },
+    });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

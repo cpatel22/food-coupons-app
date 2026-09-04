@@ -1,19 +1,26 @@
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import BusinessName from "./BusinessName";
 
 export default function AdminNav() {
   const router = useRouter();
+  const [type, setType] = useState(null);
+  useEffect(() => { fetch("/api/scanner/session").then((res) => res.json()).then((data) => setType(data.user?.type || null)); }, []);
   const tabs = [
     { href: "/admin/product", label: "Products" },
-    { href: "/admin/users", label: "Scanner Users" },
+    { href: "/admin/users", label: "Users" },
     { href: "/admin/orders", label: "Orders" },
     { href: "/admin/ordersummery", label: "Order Summary" },
-  ];
+    { href: "/kiosk-scan", label: "Kiosk Scanner" },
+  ].filter((tab) => type !== "Kiosk" || ["/admin/orders", "/admin/ordersummery", "/kiosk-scan"].includes(tab.href));
 
   const logout = async () => {
-    await fetch("/api/admin/logout", { method: "POST" });
-    router.replace("/admin");
+    await Promise.all([
+      fetch("/api/admin/logout", { method: "POST" }),
+      fetch("/api/scanner/logout", { method: "POST" }),
+    ]);
+    router.replace("/login");
   };
 
   return (

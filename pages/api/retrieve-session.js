@@ -25,7 +25,7 @@ async function createCouponsForItems({ order_id, items, customerInfo }) {
   for (const item of items) {
     const qty = item.qty || item.quantity || 0;
     for (let i = 0; i < qty; i++) {
-      const code = uuidv4().slice(0, 8).toUpperCase();
+      const code = uuidv4();
       await CouponRepo.create({
         code,
         session_id: order_id,

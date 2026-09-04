@@ -10,10 +10,8 @@ export default function OrderSummaryPage() {
 
   useEffect(() => {
     async function load() {
-      const session = await fetch("/api/admin/session").then((res) =>
-        res.json(),
-      );
-      if (!session.authenticated) return router.replace("/admin");
+      const [session, scannerSession] = await Promise.all([fetch("/api/admin/session").then((res) => res.json()), fetch("/api/scanner/session").then((res) => res.json())]);
+      if (!session.authenticated && scannerSession.user?.type !== "Kiosk") return router.replace("/login");
       const res = await fetch("/api/admin/order-summary");
       const data = await res.json();
       if (!res.ok)
@@ -44,29 +42,39 @@ export default function OrderSummaryPage() {
             <strong>${totalRevenue.toFixed(2)}</strong>
           </div>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Item</th>
-              <th>Sold Qty</th>
-              <th>Revenue</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item) => (
-              <tr key={item.name}>
-                <td>{item.name}</td>
-                <td>{item.sold_qty}</td>
-                <td>${item.revenue.toFixed(2)}</td>
-              </tr>
-            ))}
-            {!items.length ? (
+        <div className="table-wrap">
+          <table>
+            <thead>
               <tr>
-                <td colSpan="3">No sales yet.</td>
+                <th>Item</th>
+                <th>Kiosk Qty</th>
+                <th>Kiosk Amount</th>
+                <th>Pay Now Qty</th>
+                <th>Pay Now Amount</th>
+                <th>Total Qty</th>
+                <th>Total Amount</th>
               </tr>
-            ) : null}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {items.map((item) => (
+                <tr key={item.name}>
+                  <td>{item.name}</td>
+                  <td>{item.kiosk_qty}</td>
+                  <td>${item.kiosk_revenue.toFixed(2)}</td>
+                  <td>{item.pay_now_qty}</td>
+                  <td>${item.pay_now_revenue.toFixed(2)}</td>
+                  <td>{item.sold_qty}</td>
+                  <td>${item.revenue.toFixed(2)}</td>
+                </tr>
+              ))}
+              {!items.length ? (
+                <tr>
+                  <td colSpan="7">No sales yet.</td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
       </main>
       <style jsx>{`
         .page {
@@ -75,7 +83,7 @@ export default function OrderSummaryPage() {
           padding: 24px;
         }
         main {
-          max-width: 900px;
+          max-width: 1200px;
           margin: auto;
           background: white;
           border-radius: 16px;
@@ -103,8 +111,12 @@ export default function OrderSummaryPage() {
         .totals strong {
           font-size: 1.6rem;
         }
+        .table-wrap {
+          overflow-x: auto;
+        }
         table {
           width: 100%;
+          min-width: 980px;
           border-collapse: collapse;
         }
         th,

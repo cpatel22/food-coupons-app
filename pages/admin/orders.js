@@ -16,10 +16,8 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     async function load() {
-      const session = await fetch("/api/admin/session").then((res) =>
-        res.json(),
-      );
-      if (!session.authenticated) return router.replace("/admin");
+      const [session, scannerSession] = await Promise.all([fetch("/api/admin/session").then((res) => res.json()), fetch("/api/scanner/session").then((res) => res.json())]);
+      if (!session.authenticated && scannerSession.user?.type !== "Kiosk") return router.replace("/login");
       const params = new URLSearchParams({
         page: String(page),
         pageSize: String(pageSize),
@@ -107,12 +105,28 @@ export default function AdminOrdersPage() {
         </div>
         <div className="pagination">
           <span>
-            {total ? `Showing ${(page - 1) * pageSize + 1}-${Math.min(page * pageSize, total)} of ${total}` : "0 orders"}
+            {total
+              ? `Showing ${(page - 1) * pageSize + 1}-${Math.min(page * pageSize, total)} of ${total}`
+              : "0 orders"}
           </span>
           <div>
-            <button type="button" onClick={() => setPage(page - 1)} disabled={page === 1}>Previous</button>
-            <span>Page {page} of {pageCount}</span>
-            <button type="button" onClick={() => setPage(page + 1)} disabled={page === pageCount}>Next</button>
+            <button
+              type="button"
+              onClick={() => setPage(page - 1)}
+              disabled={page === 1}
+            >
+              Previous
+            </button>
+            <span>
+              Page {page} of {pageCount}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage(page + 1)}
+              disabled={page === pageCount}
+            >
+              Next
+            </button>
           </div>
         </div>
       </main>

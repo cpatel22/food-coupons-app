@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import Head from "next/head";
+import { useRouter } from "next/router";
 
 export default function Scan() {
+  const router = useRouter();
   const [user, setUser] = useState(null);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [loginError, setLoginError] = useState("");
   const [code, setCode] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -14,26 +13,12 @@ export default function Scan() {
   useEffect(() => {
     fetch("/api/scanner/session")
       .then((res) => res.json())
-      .then((data) => setUser(data.authenticated ? data.user : null));
-  }, []);
+      .then((data) => { if (!data.authenticated) router.replace("/login"); else if (data.user.type === "Kiosk") router.replace("/admin/orders"); else setUser(data.user); });
+  }, [router]);
 
   useEffect(() => {
     if (user && inputRef.current) inputRef.current.focus();
   }, [user]);
-
-  const login = async (event) => {
-    event.preventDefault();
-    setLoginError("");
-    const res = await fetch("/api/scanner/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) return setLoginError(data.error || "Login failed");
-    setUser(data.user);
-    setPassword("");
-  };
 
   const logout = async () => {
     await fetch("/api/scanner/logout", { method: "POST" });
@@ -78,37 +63,19 @@ export default function Scan() {
     }));
   };
 
+  if (!user) {
+    return <div className="redirecting">Redirecting to login...</div>;
+  }
+
   return (
     <div className="container">
       <Head>
         <title>Scanner</title>
       </Head>
-      {!user ? (
-        <form className="login" onSubmit={login}>
-          <h1>Scanner Login</h1>
-          <label>
-            Username
-            <input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-          </label>
-          <label>
-            Password
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </label>
-          {loginError ? <p className="error">{loginError}</p> : null}
-          <button>Login</button>
-        </form>
-      ) : (
-        <>
+      <>
           <div className="header">
             <div>
-              <h1>Coupon Scanner</h1>
+              <h1>Order Scanner</h1>
               <p>Signed in as {user.name}</p>
             </div>
             <button onClick={logout}>Logout</button>
@@ -148,32 +115,19 @@ export default function Scan() {
               )}
             </div>
           ) : null}
-        </>
-      )}
+      </>
       <style jsx>{`
         .container {
           max-width: 520px;
           margin: auto;
           padding: 24px;
         }
-        .login {
-          display: grid;
-          gap: 14px;
-          margin-top: 80px;
-        }
-        .login label {
-          display: grid;
-          gap: 6px;
-          font-weight: 700;
-        }
-        .login input,
         .scan-form input {
           padding: 14px;
           border: 1px solid #d1d5db;
           border-radius: 8px;
           font-size: 16px;
         }
-        .login button,
         .header button,
         .scan-form button {
           border: 0;

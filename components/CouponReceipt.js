@@ -155,7 +155,10 @@ export default function CouponReceipt({ item, showScissors }) {
           border-top: 1px dashed #000;
           margin: 8px 0;
         }
-        :global(.business-name) { text-align: center; margin: 5px 0; }
+        :global(.business-name) {
+          text-align: center;
+          margin: 5px 0;
+        }
         p {
           text-align: center;
           margin: 3px 0;

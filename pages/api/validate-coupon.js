@@ -1,21 +1,25 @@
 import { CouponRepo } from "../../lib/db";
 import { isAdminRequest } from "../../lib/admin-auth";
-import { requireScanner } from "../../lib/scanner-auth";
+import { scannerFromRequest } from "../../lib/scanner-auth";
+import { createScanLog } from "../../lib/scan-logs";
 
 export default async function handler(req, res) {
-  if (!isAdminRequest(req) && !(await requireScanner(req, res))) {
-    return;
-  }
+  const scanner = await scannerFromRequest(req);
+  if (!(await isAdminRequest(req)) && scanner?.type !== "Premvati") return res.status(401).json({ error: "Premvati scanner login required" });
 
   if (req.method === "POST") {
     const { code } = req.body;
     if (!code) return res.status(400).json({ error: "No code provided" });
 
     const coupon = await CouponRepo.getByCode(code);
-    if (!coupon) return res.status(404).json({ error: "Coupon not found" });
+    if (!coupon) {
+      if (scanner) await createScanLog({ user: scanner, scanType: "coupon", value: code, result: "INVALID" });
+      return res.status(404).json({ error: "Coupon not found" });
+    }
 
     // Check status
     if (coupon.is_used) {
+      if (scanner) await createScanLog({ user: scanner, scanType: "coupon", value: code, result: "VOIDED" });
       return res.json({
         status: "VOIDED",
         item: coupon,
@@ -23,6 +27,7 @@ export default async function handler(req, res) {
       });
     }
 
+    if (scanner) await createScanLog({ user: scanner, scanType: "coupon", value: code, result: "VALID" });
     return res.json({
       status: "VALID",
       item: coupon,

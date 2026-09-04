@@ -52,7 +52,10 @@ export default function InvoiceReceipt({ items }) {
             page-break-after: avoid; /* Keep invoice together */
           }
         }
-        :global(.business-name) { text-align: center; margin: 5px 0; }
+        :global(.business-name) {
+          text-align: center;
+          margin: 5px 0;
+        }
         .subtitle {
           text-align: center;
           font-size: 10px;

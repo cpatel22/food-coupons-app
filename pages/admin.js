@@ -17,6 +17,7 @@ const emptyForm = {
 export default function AdminPage() {
   const router = useRouter();
   const [authenticated, setAuthenticated] = useState(false);
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [items, setItems] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -57,7 +58,7 @@ export default function AdminPage() {
       const res = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ username, password }),
       });
       const data = await res.json();
 
@@ -65,6 +66,7 @@ export default function AdminPage() {
         throw new Error(data.error || "Login failed");
       }
 
+      setUsername("");
       setPassword("");
       await loadAdminState();
     } catch (err) {
@@ -218,8 +220,8 @@ export default function AdminPage() {
 
         <div className="header-row">
           <div>
-            {router.pathname !== "/admin/product" ? <h1>Admin</h1> : null}
-            <p>
+            {router.pathname !== "/admin/product" ? <h1>Login</h1> : null}
+            <p style={{ display: "none" }}>
               {router.pathname === "/admin/product"
                 ? "Manage products and inventory."
                 : "Manage menu items and inventory."}
@@ -239,10 +241,18 @@ export default function AdminPage() {
         {!authenticated ? (
           <form onSubmit={login} className="login-form">
             <label>
-              Admin Password
+              Username
+              <input
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Username (Required)"
+              />
+            </label>
+            <label>
+              Password
               <input
                 type="password"
-                value={password}
+                value={password} placeholder="Password (Required)"
                 onChange={(e) => setPassword(e.target.value)}
               />
             </label>

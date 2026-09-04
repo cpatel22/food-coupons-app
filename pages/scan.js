@@ -51,28 +51,42 @@ export default function Scan() {
   useEffect(() => {
     let stream;
     let frame;
+    let stopped = false;
     if (!cameraOn) return;
     if (!navigator.mediaDevices?.getUserMedia || !window.BarcodeDetector) {
       setResult({ error: "Camera scanning is not supported in this browser. Use the scan input instead." });
       setCameraOn(false);
       return;
     }
-    const detector = new window.BarcodeDetector({ formats: ["qr_code", "code_128"] });
-    const detect = async () => {
-      if (videoRef.current) {
-        const codes = await detector.detect(videoRef.current);
-        if (codes[0]?.rawValue) {
-          setCameraOn(false);
-          handleScan(null, codes[0].rawValue);
-          return;
+    const start = async () => {
+      const supported = await window.BarcodeDetector.getSupportedFormats();
+      const formats = ["qr_code", "code_128"].filter((format) => supported.includes(format));
+      if (!formats.length) throw new Error("This browser cannot scan QR or receipt barcodes.");
+      const detector = new window.BarcodeDetector({ formats });
+      const detect = async () => {
+        if (stopped) return;
+        try {
+          if (videoRef.current?.readyState >= 2) {
+            const codes = await detector.detect(videoRef.current);
+            if (codes[0]?.rawValue) {
+              setCameraOn(false);
+              handleScan(null, codes[0].rawValue);
+              return;
+            }
+          }
+        } catch {
+          // Keep scanning when one video frame cannot be decoded.
         }
-      }
+        frame = requestAnimationFrame(detect);
+      };
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } });
+      videoRef.current.srcObject = stream;
+      await videoRef.current.play();
       frame = requestAnimationFrame(detect);
     };
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-      .then((media) => { stream = media; videoRef.current.srcObject = media; videoRef.current.play(); frame = requestAnimationFrame(detect); })
-      .catch(() => { setResult({ error: "Camera permission was not granted." }); setCameraOn(false); });
-    return () => { cancelAnimationFrame(frame); stream?.getTracks().forEach((track) => track.stop()); };
+    start()
+      .catch((error) => { setResult({ error: error.message || "Camera permission was not granted." }); setCameraOn(false); });
+    return () => { stopped = true; cancelAnimationFrame(frame); stream?.getTracks().forEach((track) => track.stop()); };
   }, [cameraOn]);
 
   const redeemCoupon = async () => {

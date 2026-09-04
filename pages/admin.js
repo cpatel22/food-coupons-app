@@ -33,21 +33,24 @@ export default function AdminPage() {
     const sessionData = await sessionRes.json();
     setAuthenticated(sessionData.authenticated);
 
-    if (sessionData.authenticated) {
-      const itemsRes = await fetch("/api/menu-items?admin=true");
-      const itemsData = await itemsRes.json();
-      if (!itemsRes.ok) {
-        throw new Error(itemsData.error || "Failed to load menu items");
-      }
-      setItems(itemsData.items);
+    if (!sessionData.authenticated) {
+      router.replace("/login");
+      return;
     }
+
+    const itemsRes = await fetch("/api/menu-items?admin=true");
+    const itemsData = await itemsRes.json();
+    if (!itemsRes.ok) {
+      throw new Error(itemsData.error || "Failed to load menu items");
+    }
+    setItems(itemsData.items);
   };
 
   useEffect(() => {
     loadAdminState()
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [router]);
 
   const login = async (event) => {
     event.preventDefault();
@@ -207,6 +210,10 @@ export default function AdminPage() {
 
   if (loading) {
     return <div style={{ padding: 24 }}>Loading admin...</div>;
+  }
+
+  if (!authenticated) {
+    return <div style={{ padding: 24 }}>Redirecting to login...</div>;
   }
 
   return (

@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 
-import { v4 as uuidv4 } from "uuid";
+import crypto from "crypto";
 import { CouponRepo } from "../../lib/db";
 import { KioskOrderRepo } from "../../lib/kiosk-orders";
 import { MenuItemRepo } from "../../lib/menu-items";
@@ -22,20 +22,29 @@ async function buildCouponResponse(order_id) {
 }
 
 async function createCouponsForItems({ order_id, items, customerInfo }) {
+  const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const createCode = () => `PNR${Array.from({ length: 7 }, () => characters[crypto.randomInt(characters.length)]).join("")}`;
+
   for (const item of items) {
     const qty = item.qty || item.quantity || 0;
     for (let i = 0; i < qty; i++) {
-      const code = uuidv4();
-      await CouponRepo.create({
-        code,
-        session_id: order_id,
-        menu_item_name: item.name || item.description,
-        qty: 1,
-        price: item.price.unit_amount
-          ? item.price.unit_amount / 100
-          : item.price,
-        customer_info: customerInfo,
-      });
+      for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+          await CouponRepo.create({
+            code: createCode(),
+            session_id: order_id,
+            menu_item_name: item.name || item.description,
+            qty: 1,
+            price: item.price.unit_amount
+              ? item.price.unit_amount / 100
+              : item.price,
+            customer_info: customerInfo,
+          });
+          break;
+        } catch (error) {
+          if (error.code !== "23505" || attempt === 4) throw error;
+        }
+      }
     }
   }
 }

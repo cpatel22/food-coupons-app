@@ -26,11 +26,12 @@ export default function Home() {
         }
 
         setMenu(data.items);
-        setCart((prev) =>
-          prev.filter((cartItem) =>
-            data.items.some((item) => item.id === cartItem.id),
-          ),
-        );
+        setCart((prev) => prev.flatMap((cartItem) => {
+          const item = data.items.find((menuItem) => menuItem.id === cartItem.id);
+          if (!item) return [];
+          const sellableQty = Math.max(0, item.stock_qty - item.deactivate_threshold);
+          return cartItem.qty > sellableQty ? [{ ...item, qty: sellableQty }] : [cartItem];
+        }).filter((cartItem) => cartItem.qty > 0));
       } catch (error) {
         setMenuError(error.message);
       }
@@ -51,7 +52,8 @@ export default function Home() {
     setCart((prev) => {
       const existing = prev.find((i) => i.id === item.id);
       if (!existing && delta > 0) {
-        if (item.stock_qty <= 0) {
+        const sellableQty = Math.max(0, item.stock_qty - item.deactivate_threshold);
+        if (sellableQty <= 0) {
           return prev;
         }
         // Add new item
@@ -59,7 +61,8 @@ export default function Home() {
       }
       if (existing) {
         const newQty = existing.qty + delta;
-        if (delta > 0 && newQty > item.stock_qty) {
+        const sellableQty = Math.max(0, item.stock_qty - item.deactivate_threshold);
+        if (delta > 0 && newQty > sellableQty) {
           return prev;
         }
         if (newQty <= 0) {

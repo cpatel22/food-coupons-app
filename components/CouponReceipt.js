@@ -88,6 +88,16 @@ export default function CouponReceipt({ item, showScissors }) {
           width: 220px;
           margin-bottom: 0;
         }
+        .barcode-container {
+          width: 100%;
+          overflow: hidden;
+          text-align: center;
+        }
+        .barcode-container :global(svg) {
+          display: block;
+          width: 100%;
+          height: auto;
+        }
 
         .coupon {
           position: relative;

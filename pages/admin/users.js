@@ -24,7 +24,7 @@ export default function AdminUsersPage() {
   const loadUsers = async () => {
     const session = await fetch("/api/admin/session").then((res) => res.json());
     if (!session.authenticated) {
-      router.replace("/admin");
+      router.replace("/login");
       return;
     }
 

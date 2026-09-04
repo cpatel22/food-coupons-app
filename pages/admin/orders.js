@@ -8,6 +8,7 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
+  const [status, setStatus] = useState("confirmed");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [error, setError] = useState("");
@@ -22,6 +23,7 @@ export default function AdminOrdersPage() {
         page: String(page),
         pageSize: String(pageSize),
         search: appliedSearch,
+        status,
       });
       const res = await fetch(`/api/admin/orders?${params}`);
       const data = await res.json();
@@ -30,12 +32,20 @@ export default function AdminOrdersPage() {
       setTotal(data.total);
     }
     load().catch((err) => setError(err.message));
-  }, [appliedSearch, page, router]);
+  }, [appliedSearch, page, router, status]);
 
   const submitSearch = (event) => {
     event.preventDefault();
     setPage(1);
     setAppliedSearch(search.trim());
+  };
+
+  const markPaid = async (order) => {
+    const res = await fetch("/api/kiosk-order", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ order_id: order.order_id, customer_email: order.email, customer_phone: order.phone }) });
+    const data = await res.json();
+    if (!res.ok) return setError(data.error || "Failed to mark order paid");
+    setOrders((prev) => prev.filter((item) => item.order_id !== order.order_id));
+    setTotal((prev) => Math.max(0, prev - 1));
   };
 
   return (
@@ -46,6 +56,10 @@ export default function AdminOrdersPage() {
       <main>
         <AdminNav />
         <p>Read-only list of issued orders and coupons.</p>
+        <div className="view-options">
+          <button className={status === "confirmed" ? "selected" : ""} onClick={() => { setStatus("confirmed"); setPage(1); }}>Confirmed</button>
+          <button className={status === "pending" ? "selected" : ""} onClick={() => { setStatus("pending"); setPage(1); }}>Pending</button>
+        </div>
         <form className="search" onSubmit={submitSearch}>
           <input
             value={search}
@@ -67,6 +81,7 @@ export default function AdminOrdersPage() {
                 <th>Qty</th>
                 <th>Total</th>
                 <th>Date</th>
+                {status === "pending" ? <th>Actions</th> : null}
               </tr>
             </thead>
             <tbody>
@@ -93,11 +108,12 @@ export default function AdminOrdersPage() {
                       ? new Date(order.created_at).toLocaleString()
                       : "—"}
                   </td>
+                  {status === "pending" ? <td><button onClick={() => markPaid(order)}>Mark Paid</button></td> : null}
                 </tr>
               ))}
               {!orders.length ? (
                 <tr>
-                  <td colSpan="7">No issued orders yet.</td>
+                  <td colSpan={status === "pending" ? 8 : 7}>No {status} orders.</td>
                 </tr>
               ) : null}
             </tbody>
@@ -152,6 +168,9 @@ export default function AdminOrdersPage() {
           gap: 8px;
           margin: 16px 0;
         }
+        .view-options { display: flex; gap: 8px; margin: 16px 0 0; }
+        .view-options button { background: #e5e7eb; color: #111827; }
+        .view-options button.selected { background: #111827; color: #fff; }
         .search input {
           flex: 1;
           min-width: 0;

@@ -1,8 +1,9 @@
 import React from "react";
 
 export default function MenuItem({ item, qty, onUpdate }) {
-  const remainingQty = item.stock_qty - qty;
-  const isSoldOut = item.stock_qty <= 0;
+  const sellableQty = Math.max(0, item.stock_qty - item.deactivate_threshold);
+  const remainingQty = sellableQty - qty;
+  const isSoldOut = sellableQty <= 0;
   const disableAdd = isSoldOut || remainingQty <= 0;
 
   return (

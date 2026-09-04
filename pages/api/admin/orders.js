@@ -17,6 +17,7 @@ export default async function handler(req, res) {
     return res.status(200).json(
       await getAdminOrders({
         query: typeof req.query.search === "string" ? req.query.search : "",
+        status: req.query.status === "pending" ? "pending" : "confirmed",
         page,
         pageSize,
       }),

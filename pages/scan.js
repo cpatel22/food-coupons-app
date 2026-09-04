@@ -8,7 +8,9 @@ export default function Scan() {
   const [code, setCode] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [cameraOn, setCameraOn] = useState(false);
   const inputRef = useRef(null);
+  const videoRef = useRef(null);
 
   useEffect(() => {
     fetch("/api/scanner/session")
@@ -26,16 +28,16 @@ export default function Scan() {
     setResult(null);
   };
 
-  const handleScan = async (event) => {
+  const handleScan = async (event, scannedCode = code) => {
     event?.preventDefault();
-    if (!code) return;
+    if (!scannedCode) return;
     setLoading(true);
     setResult(null);
     try {
       const res = await fetch("/api/validate-coupon", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ code: scannedCode }),
       });
       setResult(await res.json());
     } catch {
@@ -45,6 +47,33 @@ export default function Scan() {
       setCode("");
     }
   };
+
+  useEffect(() => {
+    let stream;
+    let frame;
+    if (!cameraOn) return;
+    if (!navigator.mediaDevices?.getUserMedia || !window.BarcodeDetector) {
+      setResult({ error: "Camera scanning is not supported in this browser. Use the scan input instead." });
+      setCameraOn(false);
+      return;
+    }
+    const detector = new window.BarcodeDetector({ formats: ["qr_code", "code_128"] });
+    const detect = async () => {
+      if (videoRef.current) {
+        const codes = await detector.detect(videoRef.current);
+        if (codes[0]?.rawValue) {
+          setCameraOn(false);
+          handleScan(null, codes[0].rawValue);
+          return;
+        }
+      }
+      frame = requestAnimationFrame(detect);
+    };
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then((media) => { stream = media; videoRef.current.srcObject = media; videoRef.current.play(); frame = requestAnimationFrame(detect); })
+      .catch(() => { setResult({ error: "Camera permission was not granted." }); setCameraOn(false); });
+    return () => { cancelAnimationFrame(frame); stream?.getTracks().forEach((track) => track.stop()); };
+  }, [cameraOn]);
 
   const redeemCoupon = async () => {
     if (!result?.item || !confirm("Use this coupon?")) return;
@@ -92,6 +121,8 @@ export default function Scan() {
               {loading ? "Checking..." : "Check"}
             </button>
           </form>
+          <button className="camera-btn" onClick={() => setCameraOn(true)} disabled={cameraOn || loading}>Use Mobile Camera</button>
+          {cameraOn ? <video ref={videoRef} muted playsInline /> : null}
           {result ? (
             <div
               className={`result-card ${result.status === "VALID" ? "valid" : "void"}`}
@@ -151,6 +182,8 @@ export default function Scan() {
           gap: 10px;
           margin: 24px 0;
         }
+        .camera-btn { border: 0; border-radius: 8px; background: #374151; color: #fff; padding: 12px 16px; font-weight: 700; cursor: pointer; }
+        video { width: 100%; margin-top: 16px; border-radius: 12px; background: #111827; }
         .scan-form input {
           flex: 1;
         }

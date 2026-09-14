@@ -17,8 +17,12 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     async function load() {
-      const [session, scannerSession] = await Promise.all([fetch("/api/admin/session").then((res) => res.json()), fetch("/api/scanner/session").then((res) => res.json())]);
-      if (!session.authenticated && scannerSession.user?.type !== "Kiosk") return router.replace("/login");
+      const [session, scannerSession] = await Promise.all([
+        fetch("/api/admin/session").then((res) => res.json()),
+        fetch("/api/scanner/session").then((res) => res.json()),
+      ]);
+      if (!session.authenticated && scannerSession.user?.type !== "Kiosk")
+        return router.replace("/login");
       const params = new URLSearchParams({
         page: String(page),
         pageSize: String(pageSize),
@@ -41,10 +45,20 @@ export default function AdminOrdersPage() {
   };
 
   const markPaid = async (order) => {
-    const res = await fetch("/api/kiosk-order", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ order_id: order.order_id, customer_email: order.email, customer_phone: order.phone }) });
+    const res = await fetch("/api/kiosk-order", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        order_id: order.order_id,
+        customer_email: order.email,
+        customer_phone: order.phone,
+      }),
+    });
     const data = await res.json();
     if (!res.ok) return setError(data.error || "Failed to mark order paid");
-    setOrders((prev) => prev.filter((item) => item.order_id !== order.order_id));
+    setOrders((prev) =>
+      prev.filter((item) => item.order_id !== order.order_id),
+    );
     setTotal((prev) => Math.max(0, prev - 1));
   };
 
@@ -57,8 +71,24 @@ export default function AdminOrdersPage() {
         <AdminNav />
         <p>Read-only list of issued orders and coupons.</p>
         <div className="view-options">
-          <button className={status === "confirmed" ? "selected" : ""} onClick={() => { setStatus("confirmed"); setPage(1); }}>Confirmed</button>
-          <button className={status === "pending" ? "selected" : ""} onClick={() => { setStatus("pending"); setPage(1); }}>Pending</button>
+          <button
+            className={status === "confirmed" ? "selected" : ""}
+            onClick={() => {
+              setStatus("confirmed");
+              setPage(1);
+            }}
+          >
+            Confirmed
+          </button>
+          <button
+            className={status === "pending" ? "selected" : ""}
+            onClick={() => {
+              setStatus("pending");
+              setPage(1);
+            }}
+          >
+            Pending
+          </button>
         </div>
         <form className="search" onSubmit={submitSearch}>
           <input
@@ -108,12 +138,18 @@ export default function AdminOrdersPage() {
                       ? new Date(order.created_at).toLocaleString()
                       : "—"}
                   </td>
-                  {status === "pending" ? <td><button onClick={() => markPaid(order)}>Mark Paid</button></td> : null}
+                  {status === "pending" ? (
+                    <td>
+                      <button onClick={() => markPaid(order)}>Mark Paid</button>
+                    </td>
+                  ) : null}
                 </tr>
               ))}
               {!orders.length ? (
                 <tr>
-                  <td colSpan={status === "pending" ? 8 : 7}>No {status} orders.</td>
+                  <td colSpan={status === "pending" ? 8 : 7}>
+                    No {status} orders.
+                  </td>
                 </tr>
               ) : null}
             </tbody>
@@ -168,9 +204,19 @@ export default function AdminOrdersPage() {
           gap: 8px;
           margin: 16px 0;
         }
-        .view-options { display: flex; gap: 8px; margin: 16px 0 0; }
-        .view-options button { background: #e5e7eb; color: #111827; }
-        .view-options button.selected { background: #111827; color: #fff; }
+        .view-options {
+          display: flex;
+          gap: 8px;
+          margin: 16px 0 0;
+        }
+        .view-options button {
+          background: #e5e7eb;
+          color: #111827;
+        }
+        .view-options button.selected {
+          background: #111827;
+          color: #fff;
+        }
         .search input {
           flex: 1;
           min-width: 0;

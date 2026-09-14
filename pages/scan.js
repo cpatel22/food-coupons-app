@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import { playScanBeep } from "../lib/scan-beep";
 
 export default function Scan() {
   const router = useRouter();
@@ -15,7 +16,12 @@ export default function Scan() {
   useEffect(() => {
     fetch("/api/scanner/session")
       .then((res) => res.json())
-      .then((data) => { if (!data.authenticated) router.replace("/login"); else if (data.user.type === "Kiosk") router.replace("/admin/orders"); else setUser(data.user); });
+      .then((data) => {
+        if (!data.authenticated) return router.replace("/login");
+        if (data.user.type === "Kiosk") return router.replace("/kiosk-scan");
+        if (data.user.type === "Admin") return router.replace("/admin/product");
+        setUser(data.user);
+      });
   }, [router]);
 
   useEffect(() => {
@@ -31,6 +37,7 @@ export default function Scan() {
   const handleScan = async (event, scannedCode = code) => {
     event?.preventDefault();
     if (!scannedCode) return;
+    playScanBeep();
     setLoading(true);
     setResult(null);
     try {
@@ -54,14 +61,20 @@ export default function Scan() {
     let stopped = false;
     if (!cameraOn) return;
     if (!navigator.mediaDevices?.getUserMedia || !window.BarcodeDetector) {
-      setResult({ error: "Camera scanning is not supported in this browser. Use the scan input instead." });
+      setResult({
+        error:
+          "Camera scanning is not supported in this browser. Use the scan input instead.",
+      });
       setCameraOn(false);
       return;
     }
     const start = async () => {
       const supported = await window.BarcodeDetector.getSupportedFormats();
-      const formats = ["qr_code", "code_128"].filter((format) => supported.includes(format));
-      if (!formats.length) throw new Error("This browser cannot scan QR or receipt barcodes.");
+      const formats = ["qr_code", "code_128"].filter((format) =>
+        supported.includes(format),
+      );
+      if (!formats.length)
+        throw new Error("This browser cannot scan QR or receipt barcodes.");
       const detector = new window.BarcodeDetector({ formats });
       const detect = async () => {
         if (stopped) return;
@@ -70,6 +83,7 @@ export default function Scan() {
             const codes = await detector.detect(videoRef.current);
             if (codes[0]?.rawValue) {
               setCameraOn(false);
+              playScanBeep();
               handleScan(null, codes[0].rawValue);
               return;
             }
@@ -79,14 +93,24 @@ export default function Scan() {
         }
         frame = requestAnimationFrame(detect);
       };
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } });
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+      });
       videoRef.current.srcObject = stream;
       await videoRef.current.play();
       frame = requestAnimationFrame(detect);
     };
-    start()
-      .catch((error) => { setResult({ error: error.message || "Camera permission was not granted." }); setCameraOn(false); });
-    return () => { stopped = true; cancelAnimationFrame(frame); stream?.getTracks().forEach((track) => track.stop()); };
+    start().catch((error) => {
+      setResult({
+        error: error.message || "Camera permission was not granted.",
+      });
+      setCameraOn(false);
+    });
+    return () => {
+      stopped = true;
+      cancelAnimationFrame(frame);
+      stream?.getTracks().forEach((track) => track.stop());
+    };
   }, [cameraOn]);
 
   const redeemCoupon = async () => {
@@ -116,50 +140,54 @@ export default function Scan() {
         <title>Scanner</title>
       </Head>
       <>
-          <div className="header">
-            <div>
-              <h1>Order Scanner</h1>
-              <p>Signed in as {user.name}</p>
-            </div>
-            <button onClick={logout}>Logout</button>
+        <div className="header">
+          <div>
+            <h1>Order Scanner</h1>
+            <p>Signed in as {user.name}</p>
           </div>
-          <form onSubmit={handleScan} className="scan-form">
-            <input
-              ref={inputRef}
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="Scan barcode here..."
-              autoComplete="off"
-            />
-            <button disabled={loading}>
-              {loading ? "Checking..." : "Check"}
-            </button>
-          </form>
-          <button className="camera-btn" onClick={() => setCameraOn(true)} disabled={cameraOn || loading}>Use Mobile Camera</button>
-          {cameraOn ? <video ref={videoRef} muted playsInline /> : null}
-          {result ? (
-            <div
-              className={`result-card ${result.status === "VALID" ? "valid" : "void"}`}
-            >
-              {result.error ? (
-                <p className="error">{result.error}</p>
-              ) : (
-                <>
-                  <h2>{result.status}</h2>
-                  <h3>{result.item.menu_item_name}</h3>
-                  <p>Qty: {result.item.qty}</p>
-                  <p className="code">{result.item.code}</p>
-                  {result.status === "VALID" ? (
-                    <button className="redeem" onClick={redeemCoupon}>
-                      MARK AS USED
-                    </button>
-                  ) : (
-                    <p>{result.message}</p>
-                  )}
-                </>
-              )}
-            </div>
-          ) : null}
+          <button onClick={logout}>Logout</button>
+        </div>
+        <form onSubmit={handleScan} className="scan-form">
+          <input
+            ref={inputRef}
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="Scan barcode here..."
+            autoComplete="off"
+          />
+          <button disabled={loading}>
+            {loading ? "Checking..." : "Check"}
+          </button>
+        </form>
+        <button
+          className="camera-btn"
+          onClick={() => setCameraOn(true)}
+          disabled={cameraOn || loading}>
+          Use Mobile Camera
+        </button>
+        {cameraOn ? <video ref={videoRef} muted playsInline /> : null}
+        {result ? (
+          <div
+            className={`result-card ${result.status === "VALID" ? "valid" : "void"}`}>
+            {result.error ? (
+              <p className="error">{result.error}</p>
+            ) : (
+              <>
+                <h2>{result.status}</h2>
+                <h3>{result.item.menu_item_name}</h3>
+                <p>Qty: {result.item.qty}</p>
+                <p className="code">{result.item.code}</p>
+                {result.status === "VALID" ? (
+                  <button className="redeem" onClick={redeemCoupon}>
+                    MARK AS USED
+                  </button>
+                ) : (
+                  <p>{result.message}</p>
+                )}
+              </>
+            )}
+          </div>
+        ) : null}
       </>
       <style jsx>{`
         .container {
@@ -196,8 +224,21 @@ export default function Scan() {
           gap: 10px;
           margin: 24px 0;
         }
-        .camera-btn { border: 0; border-radius: 8px; background: #374151; color: #fff; padding: 12px 16px; font-weight: 700; cursor: pointer; }
-        video { width: 100%; margin-top: 16px; border-radius: 12px; background: #111827; }
+        .camera-btn {
+          border: 0;
+          border-radius: 8px;
+          background: #374151;
+          color: #fff;
+          padding: 12px 16px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        video {
+          width: 100%;
+          margin-top: 16px;
+          border-radius: 12px;
+          background: #111827;
+        }
         .scan-form input {
           flex: 1;
         }

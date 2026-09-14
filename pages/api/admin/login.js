@@ -1,7 +1,4 @@
-import {
-  setAdminSession,
-  validateAdminLogin,
-} from "../../../lib/admin-auth";
+import { setAdminSession, validateAdminLogin } from "../../../lib/admin-auth";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {

@@ -23,7 +23,10 @@ export default function KioskPayPage() {
           fetch("/api/admin/session").then((res) => res.json()),
           fetch("/api/scanner/session").then((res) => res.json()),
         ]);
-        if (!adminSession.authenticated && scannerSession.user?.type !== "Kiosk") {
+        if (
+          !adminSession.authenticated &&
+          scannerSession.user?.type !== "Kiosk"
+        ) {
           router.replace("/login");
           return;
         }

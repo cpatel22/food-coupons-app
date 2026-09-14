@@ -99,9 +99,9 @@ export default function AdminUsersPage() {
         <thead>
           <tr>
             <th>Name</th>
-              <th>Username</th>
-              <th>Type</th>
-              <th>Status</th>
+            <th>Username</th>
+            <th>Type</th>
+            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -154,40 +154,164 @@ function UserDialog({ form, saving, onChange, onClose, onSave }) {
           : event.target.value,
     }));
   return (
-    <div className="user-modal-overlay" onClick={(event) => event.target === event.currentTarget && onClose()}>
-      <div className="user-modal" role="dialog" aria-modal="true" aria-label="Scanner user form">
+    <div
+      className="user-modal-overlay"
+      onClick={(event) => event.target === event.currentTarget && onClose()}
+    >
+      <div
+        className="user-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Scanner user form"
+      >
         <div className="user-modal-header">
           <h2>{form.id ? "Edit Scanner User" : "Add Scanner User"}</h2>
-          <button className="close-x" onClick={onClose} aria-label="Close">×</button>
+          <button className="close-x" onClick={onClose} aria-label="Close">
+            ×
+          </button>
         </div>
         <div className="user-modal-body">
-          <label>Name<input value={form.name} onChange={set("name")} /></label>
-          <label>Username<input value={form.username} onChange={set("username")} /></label>
-          <label>Type<select value={form.type} onChange={set("type")}><option value="Admin">Admin</option><option value="Kiosk">Kiosk</option><option value="Premvati">Premvati</option></select></label>
-          <label>{form.id ? "New Password (leave blank to keep)" : "Password"}<input type="password" value={form.password} onChange={set("password")} /></label>
-          <label className="checkbox-row"><input type="checkbox" checked={form.active} onChange={set("active")} />Active</label>
+          <label>
+            Name
+            <input value={form.name} onChange={set("name")} />
+          </label>
+          <label>
+            Username
+            <input value={form.username} onChange={set("username")} />
+          </label>
+          <label>
+            Type
+            <select value={form.type} onChange={set("type")}>
+              <option value="Admin">Admin</option>
+              <option value="Kiosk">Kiosk</option>
+              <option value="Premvati">Premvati</option>
+            </select>
+          </label>
+          <label>
+            {form.id ? "New Password (leave blank to keep)" : "Password"}
+            <input
+              type="password"
+              value={form.password}
+              onChange={set("password")}
+            />
+          </label>
+          <label className="checkbox-row">
+            <input
+              type="checkbox"
+              checked={form.active}
+              onChange={set("active")}
+            />
+            Active
+          </label>
         </div>
         <div className="user-modal-footer">
-          <button className="secondary" onClick={onClose} disabled={saving}>Cancel</button>
-          <button className="primary" disabled={saving} onClick={onSave}>{saving ? "Saving..." : form.id ? "Save Changes" : "Add User"}</button>
+          <button className="secondary" onClick={onClose} disabled={saving}>
+            Cancel
+          </button>
+          <button className="primary" disabled={saving} onClick={onSave}>
+            {saving ? "Saving..." : form.id ? "Save Changes" : "Add User"}
+          </button>
         </div>
         <style jsx global>{`
-          .user-modal-overlay { position: fixed !important; inset: 0 !important; z-index: 1000; display: grid !important; place-items: center !important; padding: 20px; background: rgba(15, 23, 42, .55); }
-          .user-modal { width: 100%; max-width: 480px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; border-radius: 14px; background: #fff; box-shadow: 0 24px 60px rgba(0, 0, 0, .25); }
-          .user-modal-header, .user-modal-footer { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; }
-          .user-modal-header { border-bottom: 1px solid #e5e7eb; }
-          .user-modal-header h2 { margin: 0; color: #111827; font-size: 1.15rem; }
-          .close-x { width: 34px; height: 34px; border: 0; border-radius: 8px; background: #f3f4f6; color: #374151; font-size: 1.2rem; cursor: pointer; }
-          .user-modal-body { display: grid; gap: 14px; overflow-y: auto; padding: 20px 22px; }
-          .user-modal-body label { display: grid; gap: 6px; color: #1f2937; font-size: .9rem; font-weight: 600; }
-          .user-modal-body input, .user-modal-body select { width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 8px; font: inherit; }
-          .user-modal-body .checkbox-row { display: flex; align-items: center; gap: 8px; }
-          .user-modal-body .checkbox-row input { width: auto; }
-          .user-modal-footer { justify-content: flex-end; gap: 10px; border-top: 1px solid #e5e7eb; }
-          .user-modal-footer button { border: 0; border-radius: 8px; padding: 10px 14px; font-weight: 700; cursor: pointer; }
-          .secondary { background: #e5e7eb; color: #111827; }
-          .primary { background: #111827; color: #fff; }
-          button:disabled { cursor: not-allowed; opacity: .55; }
+          .user-modal-overlay {
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 1000;
+            display: grid !important;
+            place-items: center !important;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.55);
+          }
+          .user-modal {
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-radius: 14px;
+            background: #fff;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+          }
+          .user-modal-header,
+          .user-modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+          }
+          .user-modal-header {
+            border-bottom: 1px solid #e5e7eb;
+          }
+          .user-modal-header h2 {
+            margin: 0;
+            color: #111827;
+            font-size: 1.15rem;
+          }
+          .close-x {
+            width: 34px;
+            height: 34px;
+            border: 0;
+            border-radius: 8px;
+            background: #f3f4f6;
+            color: #374151;
+            font-size: 1.2rem;
+            cursor: pointer;
+          }
+          .user-modal-body {
+            display: grid;
+            gap: 14px;
+            overflow-y: auto;
+            padding: 20px 22px;
+          }
+          .user-modal-body label {
+            display: grid;
+            gap: 6px;
+            color: #1f2937;
+            font-size: 0.9rem;
+            font-weight: 600;
+          }
+          .user-modal-body input,
+          .user-modal-body select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 11px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font: inherit;
+          }
+          .user-modal-body .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          .user-modal-body .checkbox-row input {
+            width: auto;
+          }
+          .user-modal-footer {
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid #e5e7eb;
+          }
+          .user-modal-footer button {
+            border: 0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-weight: 700;
+            cursor: pointer;
+          }
+          .secondary {
+            background: #e5e7eb;
+            color: #111827;
+          }
+          .primary {
+            background: #111827;
+            color: #fff;
+          }
+          button:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+          }
         `}</style>
       </div>
     </div>

@@ -23,7 +23,8 @@ async function buildCouponResponse(order_id) {
 
 async function createCouponsForItems({ order_id, items, customerInfo }) {
   const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const createCode = () => `PNR${Array.from({ length: 7 }, () => characters[crypto.randomInt(characters.length)]).join("")}`;
+  const createCode = () =>
+    `PNR${Array.from({ length: 7 }, () => characters[crypto.randomInt(characters.length)]).join("")}`;
 
   for (const item of items) {
     const qty = item.qty || item.quantity || 0;

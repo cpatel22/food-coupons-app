@@ -259,7 +259,8 @@ export default function AdminPage() {
               Password
               <input
                 type="password"
-                value={password} placeholder="Password (Required)"
+                value={password}
+                placeholder="Password (Required)"
                 onChange={(e) => setPassword(e.target.value)}
               />
             </label>

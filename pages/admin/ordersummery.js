@@ -10,8 +10,12 @@ export default function OrderSummaryPage() {
 
   useEffect(() => {
     async function load() {
-      const [session, scannerSession] = await Promise.all([fetch("/api/admin/session").then((res) => res.json()), fetch("/api/scanner/session").then((res) => res.json())]);
-      if (!session.authenticated && scannerSession.user?.type !== "Kiosk") return router.replace("/login");
+      const [session, scannerSession] = await Promise.all([
+        fetch("/api/admin/session").then((res) => res.json()),
+        fetch("/api/scanner/session").then((res) => res.json()),
+      ]);
+      if (!session.authenticated && scannerSession.user?.type !== "Kiosk")
+        return router.replace("/login");
       const res = await fetch("/api/admin/order-summary");
       const data = await res.json();
       if (!res.ok)

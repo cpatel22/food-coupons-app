@@ -323,8 +323,7 @@ export default function AdminPage() {
                 {items.map((item) => (
                   <tr
                     key={item.id}
-                    className={item.active ? "" : "inactive-row"}
-                  >
+                    className={item.active ? "" : "inactive-row"}>
                     <td className="name-cell">{item.name}</td>
                     <td className="desc-cell" title={item.description}>
                       {item.description || "—"}
@@ -350,8 +349,7 @@ export default function AdminPage() {
                         <button
                           className="qty-btn"
                           onClick={() => applyStockAdjustment(item.id)}
-                          disabled={saving}
-                        >
+                          disabled={saving}>
                           Update
                         </button>
                       </div>
@@ -363,8 +361,7 @@ export default function AdminPage() {
                     </td>
                     <td>
                       <span
-                        className={`status-pill ${item.active ? "active-pill" : "inactive-pill"}`}
-                      >
+                        className={`status-pill ${item.active ? "active-pill" : "inactive-pill"}`}>
                         {item.active ? "Active" : "Inactive"}
                       </span>
                     </td>
@@ -373,15 +370,13 @@ export default function AdminPage() {
                         <button
                           className="edit-btn"
                           onClick={() => openEditDialog(item)}
-                          disabled={saving}
-                        >
+                          disabled={saving}>
                           Edit
                         </button>
                         <button
                           className="danger-btn"
                           onClick={() => deleteItem(item.id)}
-                          disabled={saving}
-                        >
+                          disabled={saving}>
                           Delete
                         </button>
                       </div>
@@ -586,8 +581,7 @@ function ItemDialog({
   return (
     <div
       className="admin-modal-overlay"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
+      onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="admin-modal" role="dialog" aria-modal="true">
         <div className="admin-modal-header">
           <h2>{isEditing ? "Edit Menu Item" : "Add Menu Item"}</h2>

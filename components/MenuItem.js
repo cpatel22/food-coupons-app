@@ -24,8 +24,7 @@ export default function MenuItem({ item, qty, onUpdate }) {
           <button
             className="add-btn"
             onClick={() => onUpdate(1)}
-            disabled={disableAdd}
-          >
+            disabled={disableAdd}>
             Add
           </button>
         ) : (
@@ -40,8 +39,7 @@ export default function MenuItem({ item, qty, onUpdate }) {
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
+                  strokeLinejoin="round">
                   <path d="M3 6h18"></path>
                   <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
                   <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
@@ -55,8 +53,7 @@ export default function MenuItem({ item, qty, onUpdate }) {
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
+                  strokeLinejoin="round">
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
               )}
@@ -67,8 +64,7 @@ export default function MenuItem({ item, qty, onUpdate }) {
             <button
               className="stepper-btn"
               onClick={() => onUpdate(1)}
-              disabled={disableAdd}
-            >
+              disabled={disableAdd}>
               <svg
                 width="16"
                 height="16"
@@ -77,8 +73,7 @@ export default function MenuItem({ item, qty, onUpdate }) {
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
-                strokeLinejoin="round"
-              >
+                strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>

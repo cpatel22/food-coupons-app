@@ -99,8 +99,7 @@ export default function Success() {
           <button
             className="resend-btn"
             onClick={resendEmail}
-            disabled={sendingEmail}
-          >
+            disabled={sendingEmail}>
             {sendingEmail ? "Sending..." : "Email Coupons"}
           </button>
           <button className="close-btn" onClick={() => router.push("/")}>

@@ -2,6 +2,8 @@ export default function Cart({
   items,
   onPayNow,
   onPayAtKiosk,
+  onUpdateQty,
+  onRemoveItem,
   loadingMode,
   title = "Your Cart",
   compact = false,
@@ -23,10 +25,48 @@ export default function Cart({
           <ul className="cart-items">
             {items.map((i) => (
               <li key={i.id} className="cart-item">
-                <span className="item-name">{i.name}</span>
-                <span className="item-details">
-                  x{i.qty} — ${(i.price * i.qty).toFixed(2)}
-                </span>
+                <div className="item-info">
+                  <span className="item-name">{i.name}</span>
+                  <span className="item-details">
+                    ${i.price.toFixed(2)} each
+                  </span>
+                </div>
+                <div className="item-actions">
+                  {onUpdateQty ? (
+                    <div className="quantity-controls">
+                      <button
+                        type="button"
+                        onClick={() => onUpdateQty(i.id, -1)}
+                        aria-label={`Decrease ${i.name} quantity`}
+                      >
+                        -
+                      </button>
+                      <span>{i.qty}</span>
+                      <button
+                        type="button"
+                        onClick={() => onUpdateQty(i.id, 1)}
+                        aria-label={`Increase ${i.name} quantity`}
+                      >
+                        +
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="item-details">x{i.qty}</span>
+                  )}
+                  {onRemoveItem ? (
+                    <button
+                      type="button"
+                      className="remove-button"
+                      onClick={() => onRemoveItem(i.id)}
+                      aria-label={`Remove ${i.name}`}
+                    >
+                      Delete
+                    </button>
+                  ) : null}
+                  <span className="line-total">
+                    ${(i.price * i.qty).toFixed(2)}
+                  </span>
+                </div>
               </li>
             ))}
           </ul>
@@ -86,11 +126,64 @@ export default function Cart({
         .cart-item {
           display: flex;
           justify-content: space-between;
+          align-items: center;
+          gap: 16px;
           padding: 10px 0;
           border-bottom: 1px solid #eee;
         }
+        .item-info {
+          display: grid;
+          gap: 4px;
+          min-width: 0;
+        }
         .item-name {
           font-weight: 500;
+        }
+        .item-actions {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .item-details {
+          color: #777;
+          font-size: 0.9rem;
+        }
+        .quantity-controls {
+          display: inline-flex;
+          align-items: center;
+          border: 1px solid #d0d7e2;
+          border-radius: 999px;
+          overflow: hidden;
+        }
+        .quantity-controls button,
+        .remove-button {
+          border: 0;
+          cursor: pointer;
+          font-weight: 700;
+        }
+        .quantity-controls button {
+          width: 30px;
+          height: 28px;
+          background: #f5f7fa;
+          color: #1f2f46;
+          font-size: 1rem;
+        }
+        .quantity-controls span {
+          min-width: 26px;
+          text-align: center;
+          font-weight: 700;
+        }
+        .remove-button {
+          padding: 5px 8px;
+          background: transparent;
+          color: #b42318;
+        }
+        .line-total {
+          min-width: 64px;
+          text-align: right;
+          font-weight: 700;
         }
         .cart-summary p {
           display: flex;
@@ -103,6 +196,17 @@ export default function Cart({
           font-size: 1.1rem;
           color: #000;
           margin-top: 6px;
+        }
+        @media (max-width: 560px) {
+          .cart-item {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 8px;
+          }
+          .item-actions {
+            width: 100%;
+            justify-content: space-between;
+          }
         }
         hr {
           border: none;

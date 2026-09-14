@@ -7,9 +7,11 @@ export default function BusinessName() {
       <style jsx>{`
         .business-name {
           color: #111827;
-          font-size: 1.5rem;
+          font-size: 2rem;
           font-weight: 800;
           line-height: 1.2;
+          letter-spacing: -0.04em;
+          text-align: center;
         }
       `}</style>
     </div>

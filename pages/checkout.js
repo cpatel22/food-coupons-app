@@ -5,7 +5,7 @@ import BusinessName from "../components/BusinessName";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Cart from "../components/Cart";
-import { loadCart, saveCart } from "../lib/cart-storage";
+import { clearCart, loadCart, saveCart } from "../lib/cart-storage";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -29,6 +29,20 @@ export default function CheckoutPage() {
 
     saveCart(cart);
   }, [cart, cartReady]);
+
+  const updateCartQty = (itemId, delta) => {
+    setCart((currentCart) =>
+      currentCart
+        .map((item) =>
+          item.id === itemId ? { ...item, qty: item.qty + delta } : item,
+        )
+        .filter((item) => item.qty > 0),
+    );
+  };
+
+  const removeCartItem = (itemId) => {
+    setCart((currentCart) => currentCart.filter((item) => item.id !== itemId));
+  };
 
   const validateContact = () => {
     if (!fullName.trim()) {
@@ -82,6 +96,7 @@ export default function CheckoutPage() {
       }
 
       if (data.url) {
+        clearCart();
         window.location.href = data.url;
         return;
       }
@@ -123,6 +138,7 @@ export default function CheckoutPage() {
         throw new Error(data.error || `Server Error: ${response.status}`);
       }
 
+      clearCart();
       await router.push(`/kiosk-order?order_id=${data.order_id}`);
     } catch (e) {
       alert(`Kiosk checkout failed: ${e.message}`);
@@ -141,7 +157,7 @@ export default function CheckoutPage() {
         <div className="header">
           <div>
             <BusinessName />
-            <h1>Checkout</h1>
+            <h2>Checkout</h2>
             <p>Review your order and choose how you want to pay.</p>
           </div>
           <Link className="back-link" href="/">
@@ -152,6 +168,8 @@ export default function CheckoutPage() {
         <div className="cart-shell">
           <Cart
             items={cart}
+            onUpdateQty={updateCartQty}
+            onRemoveItem={removeCartItem}
             loadingMode={loadingMode}
             title=""
             compact={true}
@@ -203,15 +221,13 @@ export default function CheckoutPage() {
           <button
             className="kiosk-btn"
             onClick={handlePayAtKiosk}
-            disabled={Boolean(loadingMode) || cart.length === 0}
-          >
+            disabled={Boolean(loadingMode) || cart.length === 0}>
             {loadingMode === "kiosk" ? "Preparing QR..." : "Pay at Kiosk"}
           </button>
           <button
             className="pay-now-btn"
             onClick={handlePayNow}
-            disabled={Boolean(loadingMode) || cart.length === 0}
-          >
+            disabled={Boolean(loadingMode) || cart.length === 0}>
             {loadingMode === "pay-now" ? "Redirecting..." : "Pay Now"}
           </button>
         </div>
@@ -237,6 +253,13 @@ export default function CheckoutPage() {
           gap: 16px;
           margin-bottom: 22px;
         }
+        .header > div:first-child {
+          flex: 1;
+          text-align: left;
+        }
+        .header :global(.business-name) {
+          text-align: center;
+        }
         h1 {
           margin: 0 0 6px;
           font-size: 2.1rem;
@@ -245,7 +268,7 @@ export default function CheckoutPage() {
         p {
           margin: 0;
           color: #596579;
-          max-width: 340px;
+          max-width: none;
           line-height: 1.45;
         }
         .back-link {
@@ -259,10 +282,11 @@ export default function CheckoutPage() {
           margin-top: 4px;
         }
         .cart-shell {
-          max-width: 620px;
+          width: 100%;
         }
         .contact-form-card {
-          max-width: 620px;
+          width: 100%;
+          box-sizing: border-box;
           margin-top: 16px;
           padding: 16px;
           border: 1px solid #dfe4ea;
@@ -299,7 +323,7 @@ export default function CheckoutPage() {
           font-weight: 600;
         }
         .payment-actions {
-          max-width: 620px;
+          width: 100%;
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 12px;

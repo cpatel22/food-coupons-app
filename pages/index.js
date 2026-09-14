@@ -109,21 +109,19 @@ export default function Home() {
 
       <div className="screen-only">
         <header className="header">
-          <div className="header-top">
-            <div>
-              <BusinessName />
-            </div>
-            <div className="header-actions">
-              <Link className="orders-link" href="/orders">
-                My Orders
-              </Link>
-              <Link className="cart-toggle" href="/checkout">
-                <span className="cart-icon" aria-hidden="true">
-                  🛒
-                </span>
-                <span className="cart-count">{cartQty}</span>
-              </Link>
-            </div>
+          <div className="brand-block">
+            <BusinessName />
+          </div>
+          <div className="header-actions">
+            <Link className="orders-link" href="/orders">
+              My Orders
+            </Link>
+            <Link className="cart-toggle" href="/checkout">
+              <span className="cart-icon" aria-hidden="true">
+                🛒
+              </span>
+              <span className="cart-count">{cartQty}</span>
+            </Link>
           </div>
         </header>
 
@@ -167,43 +165,64 @@ export default function Home() {
 
       <style jsx>{`
         .container {
-          max-width: ${APP_CONFIG.MENU_COLUMNS > 1 ? "800px" : "600px"};
+          max-width: 760px;
           margin: 0 auto;
-          padding: 20px;
+          padding: 24px 18px 36px;
           min-height: 100vh;
+          background: #e7edf5;
         }
         .header {
-          margin-bottom: 30px;
+          margin-bottom: 18px;
+          padding: 8px 12px 0;
         }
-        .header-top {
+        .brand-block {
           display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 16px;
+          justify-content: center;
+          text-align: center;
+          min-width: 0;
         }
         .header-actions {
           display: flex;
           align-items: center;
-          gap: 12px;
+          justify-content: flex-end;
+          gap: 10px;
+          margin-top: 10px;
+          flex-wrap: wrap;
         }
         .orders-link {
-          padding: 10px 16px;
-          background: #111;
-          color: #fff;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 14px;
+          background: transparent;
+          color: #1f2937;
           border-radius: 999px;
           text-decoration: none;
-          font-weight: 600;
+          font-weight: 700;
+        }
+        .orders-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 18px;
+          height: 18px;
+          padding: 0 5px;
+          border-radius: 999px;
+          background: #111827;
+          color: #fff;
+          font-size: 0.72rem;
         }
         .cart-toggle {
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 8px;
           text-decoration: none;
           border: none;
           border-radius: 999px;
-          background: #111;
-          color: #fff;
-          padding: 10px 14px;
+          background: transparent;
+          color: #111827;
+          padding: 8px 12px;
           cursor: pointer;
           font-weight: 700;
         }
@@ -212,30 +231,37 @@ export default function Home() {
           line-height: 1;
         }
         .cart-count {
-          min-width: 20px;
-          height: 20px;
+          min-width: 18px;
+          height: 18px;
           border-radius: 999px;
-          background: #fff;
-          color: #111;
+          background: #111827;
+          color: #fff;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          font-size: 0.85rem;
+          font-size: 0.72rem;
         }
         .menu-list {
           display: grid;
-          grid-template-columns: ${Array(APP_CONFIG.MENU_COLUMNS)
-            .fill("1fr")
-            .join(" ")};
-          gap: 15px;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 18px;
+          padding: 0 4px;
         }
         @media (max-width: 640px) {
-          .header-top {
-            flex-direction: column;
-            align-items: stretch;
+          .container {
+            padding-left: 12px;
+            padding-right: 12px;
           }
+          .header {
+            padding-left: 0;
+            padding-right: 0;
+          }
+          .header-actions {
+            justify-content: right;
+          }
+          .orders-link,
           .cart-toggle {
-            align-self: flex-end;
+            font-size: 0.95rem;
           }
         }
         .error-banner {

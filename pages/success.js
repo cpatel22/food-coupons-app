@@ -15,6 +15,8 @@ export default function Success() {
   const printMode = APP_CONFIG.PRINT_MODE;
 
   useEffect(() => {
+    localStorage.removeItem("food_coupons_cart");
+
     if (order_id) {
       // Check if this session has been seen before
       const seenSessions = JSON.parse(

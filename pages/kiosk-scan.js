@@ -82,7 +82,8 @@ export default function KioskScanPage() {
         <button
           type="button"
           className="lookup-btn"
-          onClick={() => router.push("/admin/orders")}>
+          onClick={() => router.push("/admin/orders")}
+        >
           Order Lookup
         </button>
       </div>

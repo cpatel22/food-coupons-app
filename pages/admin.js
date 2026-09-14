@@ -27,6 +27,7 @@ export default function AdminPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const loadAdminState = async () => {
     const sessionRes = await fetch("/api/admin/session");
@@ -208,6 +209,42 @@ export default function AdminPage() {
     }
   };
 
+  const handleImageUpload = async (file) => {
+    if (!file) return;
+
+    try {
+      setUploadingImage(true);
+      setError("");
+
+      const reader = new FileReader();
+      const dataUrl = await new Promise((resolve, reject) => {
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("Failed to read image file"));
+        reader.readAsDataURL(file);
+      });
+
+      const uploadRes = await fetch("/api/upload-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: file.name,
+          dataUrl,
+        }),
+      });
+
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok) {
+        throw new Error(uploadData.error || "Failed to upload image");
+      }
+
+      setForm((prev) => ({ ...prev, image: uploadData.url }));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   if (loading) {
     return <div style={{ padding: 24 }}>Loading admin...</div>;
   }
@@ -368,10 +405,12 @@ export default function AdminPage() {
         <ItemDialog
           form={form}
           isEditing={isEditing}
-          saving={saving}
+          saving={saving || uploadingImage}
           onChange={setForm}
           onSave={saveItem}
           onClose={closeDialog}
+          onImageUpload={handleImageUpload}
+          uploadingImage={uploadingImage}
         />
       ) : null}
 
@@ -528,7 +567,16 @@ export default function AdminPage() {
   );
 }
 
-function ItemDialog({ form, isEditing, saving, onChange, onSave, onClose }) {
+function ItemDialog({
+  form,
+  isEditing,
+  saving,
+  onChange,
+  onSave,
+  onClose,
+  onImageUpload,
+  uploadingImage,
+}) {
   const set = (field) => (e) => {
     const value =
       e.target.type === "checkbox" ? e.target.checked : e.target.value;
@@ -571,13 +619,25 @@ function ItemDialog({ form, isEditing, saving, onChange, onSave, onClose }) {
               />
             </label>
             <label>
-              Image URL
+              Image
               <input
                 type="url"
                 value={form.image}
                 onChange={set("image")}
-                required
+                placeholder="https://example.com/image.jpg or /images/your-file.jpg"
               />
+            </label>
+            <label className="upload-label">
+              Upload local image
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => onImageUpload(e.target.files?.[0])}
+                disabled={uploadingImage}
+              />
+              {uploadingImage ? (
+                <span className="upload-status">Uploading...</span>
+              ) : null}
             </label>
             <label>
               Qty (Stock)

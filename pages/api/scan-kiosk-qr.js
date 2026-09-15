@@ -6,8 +6,13 @@ export default async function handler(req, res) {
   if (req.method !== "POST")
     return res.status(405).json({ error: "Method Not Allowed" });
   const user = await scannerFromRequest(req);
-  if (!user || !["Kiosk", "Admin"].includes(user.type))
-    return res.status(401).json({ error: "Kiosk scanner login required" });
+  if (
+    !user ||
+    !["kiosk", "premvati", "admin"].includes(
+      String(user.type || "").toLowerCase(),
+    )
+  )
+    return res.status(401).json({ error: "Scanner login required" });
   const value = String(req.body.value || "").trim();
   const match = value.match(/[?&]order_id=([^&]+)/);
   const orderId = match ? decodeURIComponent(match[1]) : value;

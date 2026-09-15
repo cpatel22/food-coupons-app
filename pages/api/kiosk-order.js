@@ -3,6 +3,7 @@ import { KioskOrderRepo } from "../../lib/kiosk-orders";
 import { MenuItemRepo } from "../../lib/menu-items";
 import { isAdminRequest } from "../../lib/admin-auth";
 import { scannerFromRequest } from "../../lib/scanner-auth";
+import { getSettings } from "../../lib/settings";
 
 function normalizeItems(items) {
   if (!Array.isArray(items) || items.length === 0) {
@@ -20,6 +21,10 @@ function normalizeItems(items) {
 export default async function handler(req, res) {
   try {
     if (req.method === "POST") {
+      const settings = await getSettings();
+      if (!settings.allow_pay_at_kiosk) {
+        return res.status(403).json({ error: "Kiosk payment is currently unavailable" });
+      }
       const items = normalizeItems(req.body.items);
       const customer_name = String(req.body.customer_name || "").trim();
       const customer_email = String(req.body.customer_email || "")

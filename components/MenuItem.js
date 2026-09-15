@@ -1,13 +1,13 @@
 import React from "react";
 
-export default function MenuItem({ item, qty, onUpdate }) {
+export default function MenuItem({ item, qty, onUpdate, layout = "grid" }) {
   const sellableQty = Math.max(0, item.stock_qty - item.deactivate_threshold);
   const remainingQty = sellableQty - qty;
   const isSoldOut = sellableQty <= 0;
   const disableAdd = isSoldOut || remainingQty <= 0;
 
   return (
-    <div className="menu-item">
+    <div className={`menu-item ${layout === "list" ? "horizontal-item" : ""}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={item.image} alt={item.name} />
       <div className="info">
@@ -24,7 +24,8 @@ export default function MenuItem({ item, qty, onUpdate }) {
           <button
             className="add-btn"
             onClick={() => onUpdate(1)}
-            disabled={disableAdd}>
+            disabled={disableAdd}
+          >
             Add
           </button>
         ) : (
@@ -39,7 +40,8 @@ export default function MenuItem({ item, qty, onUpdate }) {
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
-                  strokeLinejoin="round">
+                  strokeLinejoin="round"
+                >
                   <path d="M3 6h18"></path>
                   <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
                   <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
@@ -53,7 +55,8 @@ export default function MenuItem({ item, qty, onUpdate }) {
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
-                  strokeLinejoin="round">
+                  strokeLinejoin="round"
+                >
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
               )}
@@ -64,7 +67,8 @@ export default function MenuItem({ item, qty, onUpdate }) {
             <button
               className="stepper-btn"
               onClick={() => onUpdate(1)}
-              disabled={disableAdd}>
+              disabled={disableAdd}
+            >
               <svg
                 width="16"
                 height="16"
@@ -73,7 +77,8 @@ export default function MenuItem({ item, qty, onUpdate }) {
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
-                strokeLinejoin="round">
+                strokeLinejoin="round"
+              >
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
@@ -92,6 +97,28 @@ export default function MenuItem({ item, qty, onUpdate }) {
           background: #fff;
           box-shadow: 0 2px 6px rgba(17, 24, 39, 0.04);
           min-height: 100%;
+        }
+        .horizontal-item {
+          display: grid;
+          grid-template-columns: 80px minmax(0, 1fr) 92px;
+          grid-template-rows: auto 1fr;
+          align-items: center;
+          gap: 10px;
+          min-height: 86px;
+          padding: 7px;
+          border: 2px solid #8b95a5;
+          border-radius: 0;
+          box-shadow: none;
+        }
+        .horizontal-item img {
+          grid-column: 1;
+          grid-row: 1 / -1;
+          width: 80px;
+          height: 80px;
+          margin: 0;
+          border: 0;
+          border-radius: 14px;
+          aspect-ratio: 1;
         }
         img {
           display: block;
@@ -116,6 +143,45 @@ export default function MenuItem({ item, qty, onUpdate }) {
           align-items: center;
           margin-bottom: 12px;
           gap: 10px;
+        }
+        .horizontal-item .info {
+          display: contents;
+        }
+        .horizontal-item .title-wrap {
+          grid-column: 2;
+          grid-row: 1 / -1;
+          align-self: start;
+          padding: 6px 0;
+        }
+        .horizontal-item .description {
+          max-width: 220px;
+        }
+        .horizontal-item .price {
+          grid-column: 3;
+          grid-row: 1;
+          align-self: start;
+          padding-top: 6px;
+          text-align: right;
+        }
+        .horizontal-item .controls {
+          grid-column: 3;
+          grid-row: 2;
+          align-self: end;
+          justify-content: flex-end;
+          padding-bottom: 7px;
+        }
+        .horizontal-item .stepper {
+          min-width: 86px;
+        }
+        .horizontal-item .stepper-btn {
+          width: 27px;
+          height: 27px;
+        }
+        .horizontal-item .qty-display {
+          width: 20px;
+        }
+        .horizontal-item .add-btn {
+          white-space: nowrap;
         }
         .title-wrap {
           flex: 1;
@@ -191,6 +257,21 @@ export default function MenuItem({ item, qty, onUpdate }) {
           width: 24px;
           text-align: center;
           color: #111827;
+        }
+        @media (max-width: 520px) {
+          .horizontal-item {
+            grid-template-columns: 68px minmax(0, 1fr) 82px;
+          }
+          .horizontal-item img {
+            width: 68px;
+            height: 68px;
+          }
+          .horizontal-item .price {
+            font-size: 0.9rem;
+          }
+          .horizontal-item .description {
+            font-size: 0.72rem;
+          }
         }
       `}</style>
     </div>

@@ -11,6 +11,7 @@ export default function Home() {
   const [cart, setCart] = useState([]);
   const [menuError, setMenuError] = useState("");
   const [cartReady, setCartReady] = useState(false);
+  const [menuView, setMenuView] = useState("grid");
 
   useEffect(() => {
     setCart(loadCart());
@@ -18,14 +19,21 @@ export default function Home() {
 
     const loadMenu = async () => {
       try {
-        const res = await fetch("/api/menu-items");
-        const data = await res.json();
+        const [menuRes, settingsRes] = await Promise.all([
+          fetch("/api/menu-items"),
+          fetch("/api/settings"),
+        ]);
+        const data = await menuRes.json();
+        const settingsData = await settingsRes.json();
 
-        if (!res.ok) {
+        if (!menuRes.ok) {
           throw new Error(data.error || "Failed to load menu");
         }
 
         setMenu(data.items);
+        if (settingsRes.ok) {
+          setMenuView(settingsData.settings.show_menu_as_grid ? "grid" : "list");
+        }
         setCart((prev) =>
           prev
             .flatMap((cartItem) => {
@@ -125,7 +133,7 @@ export default function Home() {
           </div>
         </header>
 
-        <main className="menu-list">
+        <main className={`menu-list ${menuView === "list" ? "list-view" : ""}`}>
           {menuError ? <p className="error-banner">{menuError}</p> : null}
           {menu.map((item) => (
             <MenuItem
@@ -133,6 +141,7 @@ export default function Home() {
               item={item}
               qty={getItemQty(item.id)}
               onUpdate={(delta) => updateQty(item, delta)}
+              layout={menuView}
             />
           ))}
         </main>
@@ -247,6 +256,31 @@ export default function Home() {
           gap: 18px;
           padding: 0 4px;
         }
+        .view-toggle {
+          display: flex;
+          justify-content: flex-end;
+          gap: 4px;
+          margin: 0 4px 12px;
+        }
+        .view-toggle button {
+          border: 1px solid #cbd5e1;
+          border-radius: 8px;
+          background: #fff;
+          color: #475569;
+          padding: 7px 11px;
+          cursor: pointer;
+          font-size: 0.82rem;
+          font-weight: 700;
+        }
+        .view-toggle button.active {
+          border-color: #1f2937;
+          background: #1f2937;
+          color: #fff;
+        }
+        .menu-list.list-view {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
         @media (max-width: 640px) {
           .container {
             padding-left: 12px;
@@ -262,6 +296,9 @@ export default function Home() {
           .orders-link,
           .cart-toggle {
             font-size: 0.95rem;
+          }
+          .view-toggle {
+            justify-content: center;
           }
         }
         .error-banner {

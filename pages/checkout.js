@@ -16,10 +16,20 @@ export default function CheckoutPage() {
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [contactError, setContactError] = useState("");
+  const [paymentSettings, setPaymentSettings] = useState({
+    allow_pay_now: true,
+    allow_pay_at_kiosk: true,
+  });
 
   useEffect(() => {
     setCart(loadCart());
     setCartReady(true);
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.settings) setPaymentSettings(data.settings);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -218,19 +228,30 @@ export default function CheckoutPage() {
         </div>
 
         <div className="payment-actions">
+          {paymentSettings.allow_pay_at_kiosk ? (
           <button
             className="kiosk-btn"
             onClick={handlePayAtKiosk}
-            disabled={Boolean(loadingMode) || cart.length === 0}>
+            disabled={Boolean(loadingMode) || cart.length === 0}
+          >
             {loadingMode === "kiosk" ? "Preparing QR..." : "Pay at Kiosk"}
           </button>
+          ) : null}
+          {paymentSettings.allow_pay_now ? (
           <button
             className="pay-now-btn"
             onClick={handlePayNow}
-            disabled={Boolean(loadingMode) || cart.length === 0}>
+            disabled={Boolean(loadingMode) || cart.length === 0}
+          >
             {loadingMode === "pay-now" ? "Redirecting..." : "Pay Now"}
           </button>
+          ) : null}
         </div>
+        {!paymentSettings.allow_pay_now && !paymentSettings.allow_pay_at_kiosk ? (
+          <p className="payment-unavailable">
+            No payment methods are currently available. Please contact us.
+          </p>
+        ) : null}
       </div>
 
       <style jsx>{`
@@ -349,6 +370,12 @@ export default function CheckoutPage() {
         .pay-now-btn:disabled {
           background: #b8b8b8;
           cursor: not-allowed;
+        }
+        .payment-unavailable {
+          margin-top: 16px;
+          color: #b42318;
+          font-weight: 700;
+          text-align: center;
         }
         @media (max-width: 640px) {
           .page {

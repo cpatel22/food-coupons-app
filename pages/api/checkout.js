@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { MenuItemRepo } from "../../lib/menu-items";
+import { getSettings } from "../../lib/settings";
 
 function getBaseUrl(req) {
   const origin = req.headers.origin;
@@ -44,7 +45,12 @@ function normalizeContact({ customer_name, customer_email, customer_phone }) {
 export default async function handler(req, res) {
   if (req.method === "POST") {
     try {
-      if (!process.env.STRIPE_SECRET_KEY) {
+      const settings = await getSettings({ includeSecrets: true });
+      if (!settings.allow_pay_now) {
+        return res.status(403).json({ message: "Card payment is currently unavailable" });
+      }
+      const stripeSecretKey = settings.stripe_secret_key || process.env.STRIPE_SECRET_KEY;
+      if (!stripeSecretKey) {
         console.error("STRIPE_SECRET_KEY is not defined");
         return res.status(500).json({
           statusCode: 500,
@@ -52,7 +58,7 @@ export default async function handler(req, res) {
         });
       }
       // Initialize Stripe inside handler to ensure env is loaded
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+      const stripe = new Stripe(stripeSecretKey);
       const baseUrl = getBaseUrl(req);
 
       const { items } = req.body;

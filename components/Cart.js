@@ -37,14 +37,16 @@ export default function Cart({
                       <button
                         type="button"
                         onClick={() => onUpdateQty(i.id, -1)}
-                        aria-label={`Decrease ${i.name} quantity`}>
+                        aria-label={`Decrease ${i.name} quantity`}
+                      >
                         -
                       </button>
                       <span>{i.qty}</span>
                       <button
                         type="button"
                         onClick={() => onUpdateQty(i.id, 1)}
-                        aria-label={`Increase ${i.name} quantity`}>
+                        aria-label={`Increase ${i.name} quantity`}
+                      >
                         +
                       </button>
                     </div>
@@ -56,7 +58,8 @@ export default function Cart({
                       type="button"
                       className="remove-button"
                       onClick={() => onRemoveItem(i.id)}
-                      aria-label={`Remove ${i.name}`}>
+                      aria-label={`Remove ${i.name}`}
+                    >
                       Delete
                     </button>
                   ) : null}
@@ -81,13 +84,15 @@ export default function Cart({
               <button
                 className="kiosk-btn"
                 onClick={onPayAtKiosk}
-                disabled={isAnyLoading}>
+                disabled={isAnyLoading}
+              >
                 {isKioskLoading ? "Preparing QR..." : "Pay at Kiosk"}
               </button>
               <button
                 className="checkout-btn"
                 onClick={onPayNow}
-                disabled={isAnyLoading}>
+                disabled={isAnyLoading}
+              >
                 {isPayNowLoading ? "Redirecting..." : "Pay Now"}
               </button>
             </div>

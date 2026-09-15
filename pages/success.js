@@ -12,7 +12,7 @@ export default function Success() {
   const [loading, setLoading] = useState(true);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
-  const printMode = APP_CONFIG.PRINT_MODE;
+  const [printMode, setPrintMode] = useState(APP_CONFIG.PRINT_MODE);
 
   useEffect(() => {
     localStorage.removeItem("food_coupons_cart");
@@ -38,6 +38,17 @@ export default function Success() {
 
           if (data.error) {
             alert("Error loading receipt: " + data.error);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.settings) {
+          setPrintMode(data.settings.qr_group_by_item ? "BY_ITEM" : "BY_QTY");
+        }
+      })
+      .catch(() => {});
+  }, []);
             setLoading(false);
             return;
           }
@@ -99,7 +110,8 @@ export default function Success() {
           <button
             className="resend-btn"
             onClick={resendEmail}
-            disabled={sendingEmail}>
+            disabled={sendingEmail}
+          >
             {sendingEmail ? "Sending..." : "Email Coupons"}
           </button>
           <button className="close-btn" onClick={() => router.push("/")}>

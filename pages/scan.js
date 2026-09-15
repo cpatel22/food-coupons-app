@@ -18,8 +18,11 @@ export default function Scan() {
       .then((res) => res.json())
       .then((data) => {
         if (!data.authenticated) return router.replace("/login");
-        if (data.user.type === "Kiosk") return router.replace("/kiosk-scan");
-        if (data.user.type === "Admin") return router.replace("/admin/product");
+        const userType = String(data.user.type || "").toLowerCase();
+        if (userType === "admin") return router.replace("/admin/product");
+        if (!["kiosk", "premvati"].includes(userType)) {
+          return router.replace("/login");
+        }
         setUser(data.user);
       });
   }, [router]);

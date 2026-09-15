@@ -6,6 +6,7 @@ import { KioskOrderRepo } from "../../lib/kiosk-orders";
 import { MenuItemRepo } from "../../lib/menu-items";
 import { OrderRecordRepo } from "../../lib/order-records";
 import { sendNotifications } from "../../lib/notifications";
+import { getSettings } from "../../lib/settings";
 
 async function buildCouponResponse(order_id) {
   const existingCoupons = await CouponRepo.getBySession(order_id);
@@ -22,20 +23,22 @@ async function buildCouponResponse(order_id) {
 }
 
 async function createCouponsForItems({ order_id, items, customerInfo }) {
+  const settings = await getSettings();
   const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const createCode = () =>
     `PNR${Array.from({ length: 7 }, () => characters[crypto.randomInt(characters.length)]).join("")}`;
 
   for (const item of items) {
     const qty = item.qty || item.quantity || 0;
-    for (let i = 0; i < qty; i++) {
+    const couponCount = settings.qr_group_by_item ? 1 : qty;
+    for (let i = 0; i < couponCount; i++) {
       for (let attempt = 0; attempt < 5; attempt++) {
         try {
           await CouponRepo.create({
             code: createCode(),
             session_id: order_id,
             menu_item_name: item.name || item.description,
-            qty: 1,
+            qty: settings.qr_group_by_item ? qty : 1,
             price: item.price.unit_amount
               ? item.price.unit_amount / 100
               : item.price,
@@ -95,11 +98,13 @@ async function getStripeCardLast4(stripe, session) {
 }
 
 export default async function handler(req, res) {
-  if (!process.env.STRIPE_SECRET_KEY) {
+  const settings = await getSettings({ includeSecrets: true });
+  const stripeSecretKey = settings.stripe_secret_key || process.env.STRIPE_SECRET_KEY;
+  if (!stripeSecretKey) {
     console.error("STRIPE_SECRET_KEY is missing");
     return res.status(500).json({ error: "STRIPE_SECRET_KEY is missing" });
   }
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  const stripe = new Stripe(stripeSecretKey);
 
   const { order_id } = req.query;
 

@@ -25,7 +25,9 @@ export default function KioskPayPage() {
         ]);
         if (
           !adminSession.authenticated &&
-          scannerSession.user?.type !== "Kiosk"
+          !["kiosk", "premvati"].includes(
+            String(scannerSession.user?.type || "").toLowerCase(),
+          )
         ) {
           router.replace("/login");
           return;

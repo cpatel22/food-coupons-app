@@ -2,6 +2,7 @@ import { CouponRepo } from "../../lib/db";
 import { KioskOrderRepo } from "../../lib/kiosk-orders";
 import { sendNotifications } from "../../lib/notifications";
 import Stripe from "stripe";
+import { getSettings } from "../../lib/settings";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -47,7 +48,8 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: "Email resent successfully" });
     }
 
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const settings = await getSettings({ includeSecrets: true });
+    const stripe = new Stripe(settings.stripe_secret_key || process.env.STRIPE_SECRET_KEY);
     const session = await stripe.checkout.sessions.retrieve(order_id);
 
     await sendNotifications({

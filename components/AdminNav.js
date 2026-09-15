@@ -13,6 +13,7 @@ export default function AdminNav() {
   }, []);
   const tabs = [
     { href: "/admin/product", label: "Products" },
+    { href: "/admin/settings", label: "Settings" },
     { href: "/admin/users", label: "Users" },
     { href: "/admin/orders", label: "Orders" },
     { href: "/admin/ordersummery", label: "Order Summary" },

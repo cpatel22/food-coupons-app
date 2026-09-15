@@ -5,8 +5,11 @@ import { createScanLog } from "../../lib/scan-logs";
 
 export default async function handler(req, res) {
   const scanner = await scannerFromRequest(req);
-  if (!(await isAdminRequest(req)) && scanner?.type !== "Premvati")
-    return res.status(401).json({ error: "Premvati scanner login required" });
+  if (
+    !(await isAdminRequest(req)) &&
+    !["premvati", "kiosk"].includes(String(scanner?.type || "").toLowerCase())
+  )
+    return res.status(401).json({ error: "Scanner login required" });
 
   if (req.method === "POST") {
     const { code } = req.body;

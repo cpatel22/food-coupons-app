@@ -60,6 +60,19 @@ create table scanner_users (
   created_at timestamptz not null default now()
 );
 
+create table app_settings (
+  key text primary key,
+  value text not null,
+  updated_at timestamptz not null default now()
+);
+
+insert into app_settings (key, value) values
+  ('qr_group_by_item', 'true'),
+  ('show_menu_as_grid', 'true'),
+  ('allow_pay_now', 'true'),
+  ('allow_pay_at_kiosk', 'true')
+on conflict (key) do nothing;
+
 create table scan_logs (
   id uuid primary key default gen_random_uuid(),
   scanner_user_id text not null references scanner_users(id),

@@ -229,25 +229,24 @@ export default function CheckoutPage() {
 
         <div className="payment-actions">
           {paymentSettings.allow_pay_at_kiosk ? (
-          <button
-            className="kiosk-btn"
-            onClick={handlePayAtKiosk}
-            disabled={Boolean(loadingMode) || cart.length === 0}
-          >
-            {loadingMode === "kiosk" ? "Preparing QR..." : "Pay at Kiosk"}
-          </button>
+            <button
+              className="kiosk-btn"
+              onClick={handlePayAtKiosk}
+              disabled={Boolean(loadingMode) || cart.length === 0}>
+              {loadingMode === "kiosk" ? "Preparing QR..." : "Pay at Kiosk"}
+            </button>
           ) : null}
           {paymentSettings.allow_pay_now ? (
-          <button
-            className="pay-now-btn"
-            onClick={handlePayNow}
-            disabled={Boolean(loadingMode) || cart.length === 0}
-          >
-            {loadingMode === "pay-now" ? "Redirecting..." : "Pay Now"}
-          </button>
+            <button
+              className="pay-now-btn"
+              onClick={handlePayNow}
+              disabled={Boolean(loadingMode) || cart.length === 0}>
+              {loadingMode === "pay-now" ? "Redirecting..." : "Pay Now"}
+            </button>
           ) : null}
         </div>
-        {!paymentSettings.allow_pay_now && !paymentSettings.allow_pay_at_kiosk ? (
+        {!paymentSettings.allow_pay_now &&
+        !paymentSettings.allow_pay_at_kiosk ? (
           <p className="payment-unavailable">
             No payment methods are currently available. Please contact us.
           </p>

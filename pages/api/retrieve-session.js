@@ -99,7 +99,8 @@ async function getStripeCardLast4(stripe, session) {
 
 export default async function handler(req, res) {
   const settings = await getSettings({ includeSecrets: true });
-  const stripeSecretKey = settings.stripe_secret_key || process.env.STRIPE_SECRET_KEY;
+  const stripeSecretKey =
+    settings.stripe_secret_key || process.env.STRIPE_SECRET_KEY;
   if (!stripeSecretKey) {
     console.error("STRIPE_SECRET_KEY is missing");
     return res.status(500).json({ error: "STRIPE_SECRET_KEY is missing" });

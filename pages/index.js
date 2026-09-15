@@ -32,7 +32,9 @@ export default function Home() {
 
         setMenu(data.items);
         if (settingsRes.ok) {
-          setMenuView(settingsData.settings.show_menu_as_grid ? "grid" : "list");
+          setMenuView(
+            settingsData.settings.show_menu_as_grid ? "grid" : "list",
+          );
         }
         setCart((prev) =>
           prev

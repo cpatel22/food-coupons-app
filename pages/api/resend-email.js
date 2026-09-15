@@ -49,7 +49,9 @@ export default async function handler(req, res) {
     }
 
     const settings = await getSettings({ includeSecrets: true });
-    const stripe = new Stripe(settings.stripe_secret_key || process.env.STRIPE_SECRET_KEY);
+    const stripe = new Stripe(
+      settings.stripe_secret_key || process.env.STRIPE_SECRET_KEY,
+    );
     const session = await stripe.checkout.sessions.retrieve(order_id);
 
     await sendNotifications({

@@ -39,16 +39,18 @@ export default function Success() {
           if (data.error) {
             alert("Error loading receipt: " + data.error);
 
-  useEffect(() => {
-    fetch("/api/settings")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.settings) {
-          setPrintMode(data.settings.qr_group_by_item ? "BY_ITEM" : "BY_QTY");
-        }
-      })
-      .catch(() => {});
-  }, []);
+            useEffect(() => {
+              fetch("/api/settings")
+                .then((res) => res.json())
+                .then((data) => {
+                  if (data.settings) {
+                    setPrintMode(
+                      data.settings.qr_group_by_item ? "BY_ITEM" : "BY_QTY",
+                    );
+                  }
+                })
+                .catch(() => {});
+            }, []);
             setLoading(false);
             return;
           }
@@ -110,8 +112,7 @@ export default function Success() {
           <button
             className="resend-btn"
             onClick={resendEmail}
-            disabled={sendingEmail}
-          >
+            disabled={sendingEmail}>
             {sendingEmail ? "Sending..." : "Email Coupons"}
           </button>
           <button className="close-btn" onClick={() => router.push("/")}>

@@ -165,15 +165,13 @@ export default function Scan() {
         <button
           className="camera-btn"
           onClick={() => setCameraOn(true)}
-          disabled={cameraOn || loading}
-        >
+          disabled={cameraOn || loading}>
           Use Mobile Camera
         </button>
         {cameraOn ? <video ref={videoRef} muted playsInline /> : null}
         {result ? (
           <div
-            className={`result-card ${result.status === "VALID" ? "valid" : "void"}`}
-          >
+            className={`result-card ${result.status === "VALID" ? "valid" : "void"}`}>
             {result.error ? (
               <p className="error">{result.error}</p>
             ) : (

@@ -47,9 +47,12 @@ export default async function handler(req, res) {
     try {
       const settings = await getSettings({ includeSecrets: true });
       if (!settings.allow_pay_now) {
-        return res.status(403).json({ message: "Card payment is currently unavailable" });
+        return res
+          .status(403)
+          .json({ message: "Card payment is currently unavailable" });
       }
-      const stripeSecretKey = settings.stripe_secret_key || process.env.STRIPE_SECRET_KEY;
+      const stripeSecretKey =
+        settings.stripe_secret_key || process.env.STRIPE_SECRET_KEY;
       if (!stripeSecretKey) {
         console.error("STRIPE_SECRET_KEY is not defined");
         return res.status(500).json({

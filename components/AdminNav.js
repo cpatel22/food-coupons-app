@@ -47,8 +47,7 @@ export default function AdminNav() {
           <Link
             key={tab.href}
             href={tab.href}
-            className={router.pathname === tab.href ? "active" : ""}
-          >
+            className={router.pathname === tab.href ? "active" : ""}>
             {tab.label}
           </Link>
         ))}

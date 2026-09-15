@@ -23,7 +23,9 @@ export default async function handler(req, res) {
     if (req.method === "POST") {
       const settings = await getSettings();
       if (!settings.allow_pay_at_kiosk) {
-        return res.status(403).json({ error: "Kiosk payment is currently unavailable" });
+        return res
+          .status(403)
+          .json({ error: "Kiosk payment is currently unavailable" });
       }
       const items = normalizeItems(req.body.items);
       const customer_name = String(req.body.customer_name || "").trim();

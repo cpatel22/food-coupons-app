@@ -1,20 +1,5 @@
 import bwipjs from "bwip-js";
-
-function getBaseUrl(req) {
-  const origin = req.headers.origin;
-  if (origin && /^https?:\/\//.test(origin)) {
-    return origin;
-  }
-
-  const protocol = req.headers["x-forwarded-proto"] || "http";
-  const host = req.headers["x-forwarded-host"] || req.headers.host;
-
-  if (!host) {
-    throw new Error("Unable to determine request host for kiosk QR");
-  }
-
-  return `${protocol}://${host}`;
-}
+import { createKioskQrToken } from "../../lib/kiosk-qr";
 
 export default async function handler(req, res) {
   const { order_id } = req.query;
@@ -24,10 +9,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const kioskUrl = `${getBaseUrl(req)}/kiosk-pay?order_id=${order_id}`;
+    const kioskToken = createKioskQrToken(order_id);
     const png = await bwipjs.toBuffer({
       bcid: "qrcode",
-      text: kioskUrl,
+      text: kioskToken,
       scale: 6,
       includetext: false,
       backgroundcolor: "FFFFFF",

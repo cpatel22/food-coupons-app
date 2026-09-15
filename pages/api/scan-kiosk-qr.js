@@ -1,6 +1,7 @@
 import { scannerFromRequest } from "../../lib/scanner-auth";
 import { createScanLog } from "../../lib/scan-logs";
 import { KioskOrderRepo } from "../../lib/kiosk-orders";
+import { readKioskQrToken } from "../../lib/kiosk-qr";
 
 export default async function handler(req, res) {
   if (req.method !== "POST")
@@ -14,8 +15,10 @@ export default async function handler(req, res) {
   )
     return res.status(401).json({ error: "Scanner login required" });
   const value = String(req.body.value || "").trim();
-  const match = value.match(/[?&]order_id=([^&]+)/);
-  const orderId = match ? decodeURIComponent(match[1]) : value;
+  const orderId = readKioskQrToken(value);
+  if (!orderId) {
+    return res.status(400).json({ error: "Invalid kiosk QR code" });
+  }
   const order = await KioskOrderRepo.getById(orderId);
   await createScanLog({
     user,

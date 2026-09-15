@@ -18,6 +18,7 @@ export default async function handler(req, res) {
       backgroundcolor: "FFFFFF",
     });
 
+    res.setHeader("Cache-Control", "no-store, max-age=0");
     res.setHeader("Content-Type", "image/png");
     return res.status(200).send(png);
   } catch (error) {

@@ -46,28 +46,40 @@ export default function KioskScanPage() {
       !window.BarcodeDetector
     )
       return;
-    const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+    let detector;
     const detect = async () => {
-      if (videoRef.current) {
-        const codes = await detector.detect(videoRef.current);
-        if (codes[0]?.rawValue) {
-          setCameraOn(false);
-          playScanBeep();
-          submit(null, codes[0].rawValue);
-          return;
+      try {
+        if (videoRef.current?.readyState >= 2) {
+          const codes = await detector.detect(videoRef.current);
+          if (codes[0]?.rawValue) {
+            setCameraOn(false);
+            playScanBeep();
+            submit(null, codes[0].rawValue);
+            return;
+          }
         }
+      } catch {
+        // Keep scanning when a video frame cannot be decoded.
       }
       frame = requestAnimationFrame(detect);
     };
-    navigator.mediaDevices
-      .getUserMedia({ video: { facingMode: "environment" } })
-      .then((media) => {
-        stream = media;
-        videoRef.current.srcObject = media;
-        videoRef.current.play();
-        frame = requestAnimationFrame(detect);
-      })
-      .catch(() => setError("Camera access was not granted."));
+    const start = async () => {
+      const supported = await window.BarcodeDetector.getSupportedFormats();
+      if (!supported.includes("qr_code")) {
+        throw new Error("This browser cannot scan QR codes.");
+      }
+      detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+      });
+      videoRef.current.srcObject = stream;
+      await videoRef.current.play();
+      frame = requestAnimationFrame(detect);
+    };
+    start().catch((scanError) => {
+      setError(scanError.message || "Camera access was not granted.");
+      setCameraOn(false);
+    });
     return () => {
       cancelAnimationFrame(frame);
       stream?.getTracks().forEach((track) => track.stop());

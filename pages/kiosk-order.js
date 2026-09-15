@@ -82,7 +82,7 @@ export default function KioskOrderPage() {
 
         <img
           className="qr-image"
-          src={`/api/kiosk-qr?order_id=${order_id}`}
+          src={`/api/kiosk-qr?order_id=${order_id}&version=2`}
           alt="Kiosk payment QR code"
         />
 

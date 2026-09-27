@@ -7,24 +7,31 @@ export default function AdminNav() {
   const router = useRouter();
   const [type, setType] = useState(null);
   useEffect(() => {
-    fetch("/api/scanner/session")
-      .then((res) => res.json())
-      .then((data) => setType(data.user?.type || null));
+    Promise.all([
+      fetch("/api/admin/session").then((res) => res.json()),
+      fetch("/api/scanner/session").then((res) => res.json()),
+    ]).then(([adminSession, scannerSession]) => {
+      setType(adminSession.type || scannerSession.user?.type || null);
+    });
   }, []);
   const tabs = [
+    { href: "/admin/dashboard", label: "Dashboard" },
     { href: "/admin/product", label: "Products" },
     { href: "/admin/settings", label: "Settings" },
     { href: "/admin/users", label: "Users" },
     { href: "/admin/orders", label: "Orders" },
     { href: "/admin/ordersummery", label: "Order Summary" },
     { href: "/kiosk-scan", label: "Kiosk Scanner" },
-  ].filter(
-    (tab) =>
-      type !== "Kiosk" ||
-      ["/admin/orders", "/admin/ordersummery", "/kiosk-scan"].includes(
+  ].filter((tab) => {
+    if (type === "Kiosk") {
+      return ["/admin/orders", "/admin/ordersummery", "/kiosk-scan"].includes(
         tab.href,
-      ),
-  );
+      );
+    }
+    if (tab.href === "/admin/settings") return type === "Superadmin";
+    if (tab.href === "/admin/dashboard") return type !== "Kiosk";
+    return true;
+  });
 
   const logout = async () => {
     await Promise.all([
@@ -47,7 +54,8 @@ export default function AdminNav() {
           <Link
             key={tab.href}
             href={tab.href}
-            className={router.pathname === tab.href ? "active" : ""}>
+            className={router.pathname === tab.href ? "active" : ""}
+          >
             {tab.label}
           </Link>
         ))}

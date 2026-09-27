@@ -1,5 +1,6 @@
-import { isAdminRequest } from "../../../lib/admin-auth";
+import { getAdminSessionInfo } from "../../../lib/admin-auth";
 
 export default async function handler(req, res) {
-  return res.status(200).json({ authenticated: await isAdminRequest(req) });
+  const session = await getAdminSessionInfo(req);
+  return res.status(200).json(session);
 }

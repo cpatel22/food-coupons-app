@@ -55,7 +55,10 @@ create table scanner_users (
   name text not null,
   username text not null unique,
   password_hash text not null,
-  user_type text not null check (user_type in ('Admin', 'Kiosk', 'Premvati')),
+  user_type text not null check (
+    user_type in ('Superadmin', 'Admin', 'Kiosk', 'Premvati')
+    or user_type like 'Premvati-%'
+  ),
   active boolean not null default true,
   created_at timestamptz not null default now()
 );
@@ -70,7 +73,10 @@ insert into app_settings (key, value) values
   ('qr_group_by_item', 'true'),
   ('show_menu_as_grid', 'true'),
   ('allow_pay_now', 'true'),
-  ('allow_pay_at_kiosk', 'true')
+  ('allow_pay_at_kiosk', 'true'),
+  ('print_coupons_required', 'true'),
+  ('email_coupons_required', 'true'),
+  ('download_coupons_required', 'true')
 on conflict (key) do nothing;
 
 create table scan_logs (
@@ -86,7 +92,10 @@ create table scan_logs (
 -- If the table already exists, add the user type with:
 -- alter table scanner_users add column if not exists user_type text not null default 'Kiosk';
 -- alter table scanner_users drop constraint if exists scanner_users_user_type_check;
--- alter table scanner_users add constraint scanner_users_user_type_check check (user_type in ('Admin', 'Kiosk', 'Premvati'));
+-- alter table scanner_users add constraint scanner_users_user_type_check check (
+--   user_type in ('Superadmin', 'Admin', 'Kiosk', 'Premvati')
+--   or user_type like 'Premvati-%'
+-- );
 
 -- Enable RLS (Row Level Security) if you want to restrict access, 
 -- but for this demo/server-side matching, basic table is fine.

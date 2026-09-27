@@ -9,6 +9,9 @@ const defaults = {
   email_enabled: true,
   allow_pay_now: true,
   allow_pay_at_kiosk: true,
+  print_coupons_required: true,
+  email_coupons_required: true,
+  download_coupons_required: true,
   smtp_host: "",
   smtp_port: "587",
   smtp_user: "",
@@ -32,6 +35,10 @@ export default function SettingsPage() {
       const session = await sessionRes.json();
       if (!session.authenticated) {
         router.replace("/login");
+        return;
+      }
+      if (session.type !== "Superadmin") {
+        router.replace("/admin/dashboard");
         return;
       }
 
@@ -101,7 +108,8 @@ export default function SettingsPage() {
             role="tab"
             aria-selected={activeTab === "email"}
             className={activeTab === "email" ? "active" : ""}
-            onClick={() => setActiveTab("email")}>
+            onClick={() => setActiveTab("email")}
+          >
             Email Configuration
           </button>
           <button
@@ -109,7 +117,8 @@ export default function SettingsPage() {
             role="tab"
             aria-selected={activeTab === "other"}
             className={activeTab === "other" ? "active" : ""}
-            onClick={() => setActiveTab("other")}>
+            onClick={() => setActiveTab("other")}
+          >
             Other Configuration
           </button>
           <button
@@ -117,7 +126,8 @@ export default function SettingsPage() {
             role="tab"
             aria-selected={activeTab === "payment"}
             className={activeTab === "payment" ? "active" : ""}
-            onClick={() => setActiveTab("payment")}>
+            onClick={() => setActiveTab("payment")}
+          >
             Payment Configuration
           </button>
         </div>
@@ -137,7 +147,8 @@ export default function SettingsPage() {
                       ...settings,
                       email_enabled: event.target.value === "yes",
                     })
-                  }>
+                  }
+                >
                   <option value="yes">Yes</option>
                   <option value="no">No</option>
                 </select>
@@ -211,7 +222,8 @@ export default function SettingsPage() {
                       ...settings,
                       qr_group_by_item: event.target.value === "yes",
                     })
-                  }>
+                  }
+                >
                   <option value="yes">Yes</option>
                   <option value="no">No</option>
                 </select>
@@ -230,7 +242,70 @@ export default function SettingsPage() {
                       ...settings,
                       show_menu_as_grid: event.target.value === "yes",
                     })
-                  }>
+                  }
+                >
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </label>
+              <h2>Coupon Sharing</h2>
+              <label className="setting-row">
+                <span>
+                  <strong>Print Coupons Required</strong>
+                  <small>
+                    Show the Print Coupons button on the success page.
+                  </small>
+                </span>
+                <select
+                  value={settings.print_coupons_required ? "yes" : "no"}
+                  onChange={(event) =>
+                    setSettings({
+                      ...settings,
+                      print_coupons_required: event.target.value === "yes",
+                    })
+                  }
+                >
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </label>
+              <label className="setting-row">
+                <span>
+                  <strong>Email Coupons Required</strong>
+                  <small>
+                    Show the Email Coupons button on the success page.
+                  </small>
+                </span>
+                <select
+                  value={settings.email_coupons_required ? "yes" : "no"}
+                  onChange={(event) =>
+                    setSettings({
+                      ...settings,
+                      email_coupons_required: event.target.value === "yes",
+                    })
+                  }
+                >
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </label>
+              <label className="setting-row">
+                <span>
+                  <strong>Download Coupons Required</strong>
+                  <small>
+                    Show the Download Coupons button so customers can save all
+                    coupons as a PDF.
+                  </small>
+                </span>
+                <select
+                  value={settings.download_coupons_required ? "yes" : "no"}
+                  onChange={(event) =>
+                    setSettings({
+                      ...settings,
+                      download_coupons_required: event.target.value === "yes",
+                    })
+                  }
+                >
                   <option value="yes">Yes</option>
                   <option value="no">No</option>
                 </select>
@@ -281,7 +356,8 @@ export default function SettingsPage() {
                       ...settings,
                       allow_pay_now: event.target.value === "yes",
                     })
-                  }>
+                  }
+                >
                   <option value="yes">Yes</option>
                   <option value="no">No</option>
                 </select>
@@ -301,7 +377,8 @@ export default function SettingsPage() {
                       ...settings,
                       allow_pay_at_kiosk: event.target.value === "yes",
                     })
-                  }>
+                  }
+                >
                   <option value="yes">Yes</option>
                   <option value="no">No</option>
                 </select>
@@ -364,11 +441,16 @@ export default function SettingsPage() {
           gap: 6px;
           font-weight: 700;
         }
-        .field input {
+        .field input,
+        .field textarea {
           padding: 10px;
           border: 1px solid #cbd5e1;
           border-radius: 6px;
           font: inherit;
+        }
+        .field small {
+          color: #64748b;
+          font-weight: 500;
         }
         .setting-row {
           display: flex;

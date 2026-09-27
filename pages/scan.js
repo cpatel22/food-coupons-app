@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { playScanBeep } from "../lib/scan-beep";
+import { playScanBeep, playUnauthorizedBeep } from "../lib/scan-beep";
+import { isAdminType, isKioskType, isPremvatiType } from "../lib/user-roles";
 
 export default function Scan() {
   const router = useRouter();
@@ -18,9 +19,10 @@ export default function Scan() {
       .then((res) => res.json())
       .then((data) => {
         if (!data.authenticated) return router.replace("/login");
-        const userType = String(data.user.type || "").toLowerCase();
-        if (userType === "admin") return router.replace("/admin/product");
-        if (!["kiosk", "premvati"].includes(userType)) {
+        const userType = data.user.type || "";
+        if (isAdminType(userType)) return router.replace("/admin/dashboard");
+        if (isKioskType(userType)) return router.replace("/kiosk-scan");
+        if (!isPremvatiType(userType)) {
           return router.replace("/login");
         }
         setUser(data.user);
@@ -40,7 +42,6 @@ export default function Scan() {
   const handleScan = async (event, scannedCode = code) => {
     event?.preventDefault();
     if (!scannedCode) return;
-    playScanBeep();
     setLoading(true);
     setResult(null);
     try {
@@ -49,7 +50,16 @@ export default function Scan() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: scannedCode }),
       });
-      setResult(await res.json());
+      const data = await res.json();
+      setResult(data);
+      if (
+        data.status === "UNAUTHORISED" ||
+        data.error === "Unauthorised scan"
+      ) {
+        playUnauthorizedBeep();
+      } else {
+        playScanBeep();
+      }
     } catch {
       setResult({ error: "Scan failed" });
     } finally {
@@ -86,7 +96,6 @@ export default function Scan() {
             const codes = await detector.detect(videoRef.current);
             if (codes[0]?.rawValue) {
               setCameraOn(false);
-              playScanBeep();
               handleScan(null, codes[0].rawValue);
               return;
             }
@@ -146,7 +155,9 @@ export default function Scan() {
         <div className="header">
           <div>
             <h1>Order Scanner</h1>
-            <p>Signed in as {user.name}</p>
+            <p>
+              Signed in as {user.name} ({user.type})
+            </p>
           </div>
           <button onClick={logout}>Logout</button>
         </div>
@@ -165,15 +176,21 @@ export default function Scan() {
         <button
           className="camera-btn"
           onClick={() => setCameraOn(true)}
-          disabled={cameraOn || loading}>
+          disabled={cameraOn || loading}
+        >
           Use Mobile Camera
         </button>
         {cameraOn ? <video ref={videoRef} muted playsInline /> : null}
         {result ? (
           <div
-            className={`result-card ${result.status === "VALID" ? "valid" : "void"}`}>
+            className={`result-card ${result.status === "VALID" ? "valid" : "void"}`}
+          >
             {result.error ? (
-              <p className="error">{result.error}</p>
+              <p className="error">
+                {result.status === "UNAUTHORISED"
+                  ? "Unauthorised scan"
+                  : result.error}
+              </p>
             ) : (
               <>
                 <h2>{result.status}</h2>

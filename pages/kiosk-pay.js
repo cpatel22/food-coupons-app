@@ -145,7 +145,8 @@ export default function KioskPayPage() {
         <button
           className="paid-btn"
           onClick={markPaid}
-          disabled={saving || order.status === "paid"}>
+          disabled={saving || order.status === "paid"}
+        >
           {order.status === "paid"
             ? "Already Paid"
             : saving

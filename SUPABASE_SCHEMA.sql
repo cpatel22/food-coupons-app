@@ -73,7 +73,10 @@ insert into app_settings (key, value) values
   ('qr_group_by_item', 'true'),
   ('show_menu_as_grid', 'true'),
   ('allow_pay_now', 'true'),
-  ('allow_pay_at_kiosk', 'true')
+  ('allow_pay_at_kiosk', 'true'),
+  ('print_coupons_required', 'true'),
+  ('email_coupons_required', 'true'),
+  ('download_coupons_required', 'true')
 on conflict (key) do nothing;
 
 create table scan_logs (

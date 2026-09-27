@@ -159,9 +159,11 @@ export default async function handler(req, res) {
         }).catch((err) => console.error("Notification trigger error:", err));
       }
 
-      return res
-        .status(200)
-        .json({ items: await buildCouponResponse(order_id) });
+      return res.status(200).json({
+        items: await buildCouponResponse(order_id),
+        customer_email: kioskOrder.customer_email || "",
+        customer_phone: kioskOrder.customer_phone || "",
+      });
     }
 
     const session = await stripe.checkout.sessions.retrieve(order_id);
@@ -231,7 +233,11 @@ export default async function handler(req, res) {
       }).catch((err) => console.error("Notification trigger error:", err));
     }
 
-    res.status(200).json({ items: await buildCouponResponse(order_id) });
+    res.status(200).json({
+      items: await buildCouponResponse(order_id),
+      customer_email: customerEmail || "",
+      customer_phone: customerPhone || "",
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

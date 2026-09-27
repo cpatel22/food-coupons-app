@@ -9,6 +9,9 @@ const defaults = {
   email_enabled: true,
   allow_pay_now: true,
   allow_pay_at_kiosk: true,
+  print_coupons_required: true,
+  email_coupons_required: true,
+  download_coupons_required: true,
   smtp_host: "",
   smtp_port: "587",
   smtp_user: "",
@@ -245,6 +248,68 @@ export default function SettingsPage() {
                   <option value="no">No</option>
                 </select>
               </label>
+              <h2>Coupon Sharing</h2>
+              <label className="setting-row">
+                <span>
+                  <strong>Print Coupons Required</strong>
+                  <small>
+                    Show the Print Coupons button on the success page.
+                  </small>
+                </span>
+                <select
+                  value={settings.print_coupons_required ? "yes" : "no"}
+                  onChange={(event) =>
+                    setSettings({
+                      ...settings,
+                      print_coupons_required: event.target.value === "yes",
+                    })
+                  }
+                >
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </label>
+              <label className="setting-row">
+                <span>
+                  <strong>Email Coupons Required</strong>
+                  <small>
+                    Show the Email Coupons button on the success page.
+                  </small>
+                </span>
+                <select
+                  value={settings.email_coupons_required ? "yes" : "no"}
+                  onChange={(event) =>
+                    setSettings({
+                      ...settings,
+                      email_coupons_required: event.target.value === "yes",
+                    })
+                  }
+                >
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </label>
+              <label className="setting-row">
+                <span>
+                  <strong>Download Coupons Required</strong>
+                  <small>
+                    Show the Download Coupons button so customers can save all
+                    coupons as a PDF.
+                  </small>
+                </span>
+                <select
+                  value={settings.download_coupons_required ? "yes" : "no"}
+                  onChange={(event) =>
+                    setSettings({
+                      ...settings,
+                      download_coupons_required: event.target.value === "yes",
+                    })
+                  }
+                >
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </label>
             </>
           ) : (
             <>
@@ -376,11 +441,16 @@ export default function SettingsPage() {
           gap: 6px;
           font-weight: 700;
         }
-        .field input {
+        .field input,
+        .field textarea {
           padding: 10px;
           border: 1px solid #cbd5e1;
           border-radius: 6px;
           font: inherit;
+        }
+        .field small {
+          color: #64748b;
+          font-weight: 500;
         }
         .setting-row {
           display: flex;

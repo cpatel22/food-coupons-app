@@ -40,5 +40,6 @@ insert into app_settings (key, value) values
   ('allow_pay_at_kiosk', 'true'),
   ('print_coupons_required', 'true'),
   ('email_coupons_required', 'true'),
-  ('download_coupons_required', 'true')
+  ('download_coupons_required', 'true'),
+  ('checkout_refund_policy_required', 'true')
 on conflict (key) do nothing;

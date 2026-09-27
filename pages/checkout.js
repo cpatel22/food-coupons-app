@@ -16,10 +16,14 @@ export default function CheckoutPage() {
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [contactError, setContactError] = useState("");
+  const [acceptedRefundPolicy, setAcceptedRefundPolicy] = useState(false);
   const [paymentSettings, setPaymentSettings] = useState({
     allow_pay_now: true,
     allow_pay_at_kiosk: true,
+    checkout_refund_policy_required: true,
   });
+  const requireRefundPolicy =
+    paymentSettings.checkout_refund_policy_required !== false;
 
   useEffect(() => {
     setCart(loadCart());
@@ -67,6 +71,13 @@ export default function CheckoutPage() {
 
     if (!customerPhone.trim()) {
       setContactError("Phone number is required.");
+      return false;
+    }
+
+    if (requireRefundPolicy && !acceptedRefundPolicy) {
+      setContactError(
+        "Please confirm the cancellation and refund policy to continue.",
+      );
       return false;
     }
 
@@ -227,12 +238,35 @@ export default function CheckoutPage() {
           ) : null}
         </div>
 
+        {requireRefundPolicy ? (
+          <label className="policy-check">
+            <input
+              type="checkbox"
+              checked={acceptedRefundPolicy}
+              onChange={(e) => {
+                setAcceptedRefundPolicy(e.target.checked);
+                if (e.target.checked && contactError) {
+                  setContactError("");
+                }
+              }}
+            />
+            <span>
+              I understand that this order cannot be cancelled or refunded,
+              except if an item cannot be fulfilled because it is out of stock.
+            </span>
+          </label>
+        ) : null}
+
         <div className="payment-actions">
           {paymentSettings.allow_pay_at_kiosk ? (
             <button
               className="kiosk-btn"
               onClick={handlePayAtKiosk}
-              disabled={Boolean(loadingMode) || cart.length === 0}
+              disabled={
+                Boolean(loadingMode) ||
+                cart.length === 0 ||
+                (requireRefundPolicy && !acceptedRefundPolicy)
+              }
             >
               {loadingMode === "kiosk" ? "Preparing QR..." : "Pay at Kiosk"}
             </button>
@@ -241,7 +275,11 @@ export default function CheckoutPage() {
             <button
               className="pay-now-btn"
               onClick={handlePayNow}
-              disabled={Boolean(loadingMode) || cart.length === 0}
+              disabled={
+                Boolean(loadingMode) ||
+                cart.length === 0 ||
+                (requireRefundPolicy && !acceptedRefundPolicy)
+              }
             >
               {loadingMode === "pay-now" ? "Redirecting..." : "Pay Now"}
             </button>
@@ -343,6 +381,25 @@ export default function CheckoutPage() {
           margin-top: 10px;
           color: #b42318;
           font-weight: 600;
+        }
+        .policy-check {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          margin-top: 16px;
+          padding: 14px 16px;
+          border: 1px solid #dfe4ea;
+          background: #f8fafc;
+          color: #1f2f46;
+          font-size: 0.95rem;
+          line-height: 1.45;
+          cursor: pointer;
+        }
+        .policy-check input {
+          margin-top: 3px;
+          width: 18px;
+          height: 18px;
+          flex-shrink: 0;
         }
         .payment-actions {
           width: 100%;

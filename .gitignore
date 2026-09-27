@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Next.js agent helper files (recreated by `next dev` in Cursor)
+AGENTS.md
+CLAUDE.md

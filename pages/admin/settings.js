@@ -12,6 +12,7 @@ const defaults = {
   print_coupons_required: true,
   email_coupons_required: true,
   download_coupons_required: true,
+  checkout_refund_policy_required: true,
   smtp_host: "",
   smtp_port: "587",
   smtp_user: "",
@@ -376,6 +377,29 @@ export default function SettingsPage() {
                     setSettings({
                       ...settings,
                       allow_pay_at_kiosk: event.target.value === "yes",
+                    })
+                  }
+                >
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </label>
+              <label className="setting-row">
+                <span>
+                  <strong>Show checkout refund policy</strong>
+                  <small>
+                    When Yes, checkout requires customers to agree that orders
+                    cannot be cancelled or refunded unless an item is out of
+                    stock.
+                  </small>
+                </span>
+                <select
+                  value={settings.checkout_refund_policy_required ? "yes" : "no"}
+                  onChange={(event) =>
+                    setSettings({
+                      ...settings,
+                      checkout_refund_policy_required:
+                        event.target.value === "yes",
                     })
                   }
                 >

@@ -15,9 +15,14 @@ export default function KioskScanPage() {
       .then((res) => res.json())
       .then((data) => {
         if (!data.authenticated) return router.replace("/login");
-        const userType = String(data.user.type || "").toLowerCase();
-        if (userType === "admin") return router.replace("/admin/product");
-        if (!["kiosk", "premvati"].includes(userType)) {
+        const userType = data.user.type || "";
+        if (userType === "Admin" || userType === "Superadmin") {
+          return router.replace("/admin/dashboard");
+        }
+        if (String(userType).startsWith("Premvati")) {
+          return router.replace("/scan");
+        }
+        if (userType !== "Kiosk") {
           return router.replace("/login");
         }
       });
@@ -96,7 +101,8 @@ export default function KioskScanPage() {
         <button
           type="button"
           className="lookup-btn"
-          onClick={() => router.push("/admin/orders")}>
+          onClick={() => router.push("/admin/orders")}
+        >
           Order Lookup
         </button>
       </div>

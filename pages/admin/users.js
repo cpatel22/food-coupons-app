@@ -15,6 +15,7 @@ const emptyUser = {
 export default function AdminUsersPage() {
   const router = useRouter();
   const [users, setUsers] = useState([]);
+  const [premvatiRoles, setPremvatiRoles] = useState([]);
   const [form, setForm] = useState(emptyUser);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -32,6 +33,7 @@ export default function AdminUsersPage() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Failed to load users");
     setUsers(data.users);
+    setPremvatiRoles(data.premvatiRoles || []);
   };
 
   useEffect(() => {
@@ -91,7 +93,7 @@ export default function AdminUsersPage() {
   return (
     <AdminFrame
       title="Users"
-      description="Only active users can log into the QR scanner."
+      description="Assign Superadmin, Admin, Kiosk, or a Premvati menu role created with each product."
       onAdd={openAdd}
     >
       {error ? <p className="error">{error}</p> : null}
@@ -135,6 +137,7 @@ export default function AdminUsersPage() {
         <UserDialog
           form={form}
           saving={saving}
+          premvatiRoles={premvatiRoles}
           onChange={setForm}
           onClose={() => setDialogOpen(false)}
           onSave={save}
@@ -144,7 +147,18 @@ export default function AdminUsersPage() {
   );
 }
 
-function UserDialog({ form, saving, onChange, onClose, onSave }) {
+function UserDialog({
+  form,
+  saving,
+  premvatiRoles,
+  onChange,
+  onClose,
+  onSave,
+}) {
+  const roleOptions = ["Superadmin", "Admin", "Kiosk", ...premvatiRoles];
+  if (form.type && !roleOptions.includes(form.type)) {
+    roleOptions.push(form.type);
+  }
   const set = (field) => (event) =>
     onChange((prev) => ({
       ...prev,
@@ -182,9 +196,11 @@ function UserDialog({ form, saving, onChange, onClose, onSave }) {
           <label>
             Type
             <select value={form.type} onChange={set("type")}>
-              <option value="Admin">Admin</option>
-              <option value="Kiosk">Kiosk</option>
-              <option value="Premvati">Premvati</option>
+              {roleOptions.map((role) => (
+                <option key={role} value={role}>
+                  {role}
+                </option>
+              ))}
             </select>
           </label>
           <label>

@@ -2,12 +2,18 @@ import { CouponRepo } from "../../lib/db";
 import { isAdminRequest } from "../../lib/admin-auth";
 import { scannerFromRequest } from "../../lib/scanner-auth";
 import { createScanLog } from "../../lib/scan-logs";
+import {
+  couponAllowedForScanner,
+  isKioskType,
+  isPremvatiType,
+} from "../../lib/user-roles";
 
 export default async function handler(req, res) {
   const scanner = await scannerFromRequest(req);
   if (
     !(await isAdminRequest(req)) &&
-    !["premvati", "kiosk"].includes(String(scanner?.type || "").toLowerCase())
+    !isKioskType(scanner?.type) &&
+    !isPremvatiType(scanner?.type)
   )
     return res.status(401).json({ error: "Scanner login required" });
 
@@ -25,6 +31,22 @@ export default async function handler(req, res) {
           result: "INVALID",
         });
       return res.status(404).json({ error: "Coupon not found" });
+    }
+
+    if (
+      scanner &&
+      !couponAllowedForScanner(scanner.type, coupon.menu_item_name)
+    ) {
+      await createScanLog({
+        user: scanner,
+        scanType: "coupon",
+        value: code,
+        result: "UNAUTHORISED",
+      });
+      return res.status(403).json({
+        status: "UNAUTHORISED",
+        error: "Unauthorised scan",
+      });
     }
 
     // Check status
@@ -61,6 +83,17 @@ export default async function handler(req, res) {
     if (!code) return res.status(400).json({ error: "No code provided" });
 
     try {
+      const coupon = await CouponRepo.getByCode(code);
+      if (!coupon) return res.status(404).json({ error: "Coupon not found" });
+      if (
+        scanner &&
+        !couponAllowedForScanner(scanner.type, coupon.menu_item_name)
+      ) {
+        return res.status(403).json({
+          status: "UNAUTHORISED",
+          error: "Unauthorised scan",
+        });
+      }
       const voidedAt = await CouponRepo.markUsed(code);
       return res.json({ success: true, voidedAt });
     } catch (e) {

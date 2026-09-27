@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import AdminNav from "../components/AdminNav";
+import { premvatiRoleFromItemName } from "../lib/user-roles";
 
 const emptyForm = {
   id: null,
@@ -311,6 +312,7 @@ export default function AdminPage() {
               <thead>
                 <tr>
                   <th>Name</th>
+                  <th>Scanner role</th>
                   <th>Description</th>
                   <th>Price</th>
                   <th>Qty Adjustment</th>
@@ -326,6 +328,7 @@ export default function AdminPage() {
                     className={item.active ? "" : "inactive-row"}
                   >
                     <td className="name-cell">{item.name}</td>
+                    <td>{item.scanner_role || "—"}</td>
                     <td className="desc-cell" title={item.description}>
                       {item.description || "—"}
                     </td>
@@ -390,7 +393,7 @@ export default function AdminPage() {
                 ))}
                 {items.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="empty-table">
+                    <td colSpan="8" className="empty-table">
                       No menu items yet. Click "+ Add Item" to create one.
                     </td>
                   </tr>
@@ -606,6 +609,11 @@ function ItemDialog({
                 onChange={set("name")}
                 required
               />
+              <span className="hint">
+                {form.name.trim()
+                  ? `Creates scanner role ${premvatiRoleFromItemName(form.name)}`
+                  : "Saving this item also creates a Premvati-{Item} scanner role."}
+              </span>
             </label>
             <label>
               Price
@@ -803,6 +811,7 @@ function ItemDialog({
             border-radius: 5px;
             display: block;
           }
+          .hint,
           .hint-label .hint {
             font-weight: 400;
             font-size: 0.8rem;

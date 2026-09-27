@@ -1,12 +1,31 @@
-import { requireAdmin } from "../../../lib/admin-auth";
+import { getAdminSessionInfo, requireAdmin } from "../../../lib/admin-auth";
+import { MenuItemRepo } from "../../../lib/menu-items";
 import { ScannerUserRepo } from "../../../lib/scanner-users";
+import { premvatiRoleFromItemName } from "../../../lib/user-roles";
 
 export default async function handler(req, res) {
   if (!(await requireAdmin(req, res))) return;
 
   try {
-    if (req.method === "GET")
-      return res.status(200).json({ users: await ScannerUserRepo.list() });
+    const session = await getAdminSessionInfo(req);
+    if (req.method === "GET") {
+      const items = await MenuItemRepo.listAll();
+      const premvatiRoles = [
+        ...new Set(
+          items
+            .map(
+              (item) =>
+                item.scanner_role || premvatiRoleFromItemName(item.name),
+            )
+            .filter(Boolean),
+        ),
+      ];
+      return res.status(200).json({
+        users: await ScannerUserRepo.list(),
+        premvatiRoles,
+        sessionType: session.type,
+      });
+    }
     if (req.method === "POST")
       return res
         .status(200)

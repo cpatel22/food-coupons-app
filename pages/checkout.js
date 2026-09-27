@@ -232,7 +232,8 @@ export default function CheckoutPage() {
             <button
               className="kiosk-btn"
               onClick={handlePayAtKiosk}
-              disabled={Boolean(loadingMode) || cart.length === 0}>
+              disabled={Boolean(loadingMode) || cart.length === 0}
+            >
               {loadingMode === "kiosk" ? "Preparing QR..." : "Pay at Kiosk"}
             </button>
           ) : null}
@@ -240,7 +241,8 @@ export default function CheckoutPage() {
             <button
               className="pay-now-btn"
               onClick={handlePayNow}
-              disabled={Boolean(loadingMode) || cart.length === 0}>
+              disabled={Boolean(loadingMode) || cart.length === 0}
+            >
               {loadingMode === "pay-now" ? "Redirecting..." : "Pay Now"}
             </button>
           ) : null}

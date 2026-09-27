@@ -34,6 +34,10 @@ export default function SettingsPage() {
         router.replace("/login");
         return;
       }
+      if (session.type !== "Superadmin") {
+        router.replace("/admin/dashboard");
+        return;
+      }
 
       const settingsRes = await fetch("/api/settings?admin=true");
       const data = await settingsRes.json();
@@ -101,7 +105,8 @@ export default function SettingsPage() {
             role="tab"
             aria-selected={activeTab === "email"}
             className={activeTab === "email" ? "active" : ""}
-            onClick={() => setActiveTab("email")}>
+            onClick={() => setActiveTab("email")}
+          >
             Email Configuration
           </button>
           <button
@@ -109,7 +114,8 @@ export default function SettingsPage() {
             role="tab"
             aria-selected={activeTab === "other"}
             className={activeTab === "other" ? "active" : ""}
-            onClick={() => setActiveTab("other")}>
+            onClick={() => setActiveTab("other")}
+          >
             Other Configuration
           </button>
           <button
@@ -117,7 +123,8 @@ export default function SettingsPage() {
             role="tab"
             aria-selected={activeTab === "payment"}
             className={activeTab === "payment" ? "active" : ""}
-            onClick={() => setActiveTab("payment")}>
+            onClick={() => setActiveTab("payment")}
+          >
             Payment Configuration
           </button>
         </div>
@@ -137,7 +144,8 @@ export default function SettingsPage() {
                       ...settings,
                       email_enabled: event.target.value === "yes",
                     })
-                  }>
+                  }
+                >
                   <option value="yes">Yes</option>
                   <option value="no">No</option>
                 </select>
@@ -211,7 +219,8 @@ export default function SettingsPage() {
                       ...settings,
                       qr_group_by_item: event.target.value === "yes",
                     })
-                  }>
+                  }
+                >
                   <option value="yes">Yes</option>
                   <option value="no">No</option>
                 </select>
@@ -230,7 +239,8 @@ export default function SettingsPage() {
                       ...settings,
                       show_menu_as_grid: event.target.value === "yes",
                     })
-                  }>
+                  }
+                >
                   <option value="yes">Yes</option>
                   <option value="no">No</option>
                 </select>
@@ -281,7 +291,8 @@ export default function SettingsPage() {
                       ...settings,
                       allow_pay_now: event.target.value === "yes",
                     })
-                  }>
+                  }
+                >
                   <option value="yes">Yes</option>
                   <option value="no">No</option>
                 </select>
@@ -301,7 +312,8 @@ export default function SettingsPage() {
                       ...settings,
                       allow_pay_at_kiosk: event.target.value === "yes",
                     })
-                  }>
+                  }
+                >
                   <option value="yes">Yes</option>
                   <option value="no">No</option>
                 </select>
